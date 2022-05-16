@@ -1,0 +1,31 @@
+{
+  "name": "7-fullstack-ethan-realestatewiki",
+  "version": "1.0.0",
+  "description": "realestatewiki",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src --fix",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://%5Bethandeveloper2%5D@github.com/ethandeveloper2/7-fullstack-ethan-realestatewiki.git"
+  },
+  "author": "ethan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ethandeveloper2/7-fullstack-ethan-realestatewiki/issues"
+  },
+  "homepage": "https://github.com/ethandeveloper2/7-fullstack-ethan-realestatewiki#readme",
+  "dependencies": {
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "express": "^4.18.1",
+    "prettier": "^2.6.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "nodemon": "^2.0.16"
+  }
+}
