@@ -1,13 +1,17 @@
 import express from "express";
-import dataRouter from "./routes/data.js";
+import usersRouter from "./routes/users.js";
+import postsRouter from "./routes/posts.js";
+import commentsRouter from "./routes/comments.js";
+import aptinfoRouter from "./routes/apt_info.js";
 
 const app = express();
 
-//express.json 미들웨어를 사용하고
 app.use(express.json());
 
-//dataRouter 라는 경로가 있다.
-app.use("/data", dataRouter);
+app.use("/users", usersRouter);
+app.use("/posts", postsRouter);
+app.use("/comments", commentsRouter);
+app.use("/aptinfos", aptinfoRouter);
 
 app.listen(8080, () => {
   console.log("server is listening");
