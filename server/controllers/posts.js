@@ -1,23 +1,10 @@
-import mysql from "mysql";
-import { config } from "../config.js";
-
-const con = mysql.createConnection({
-  host: config.DB.host,
-  user: config.DB.user,
-  password: config.DB.pw,
-  database: config.DB.dbname,
-});
-
-con.connect(function (err) {
-  if (err) throw err;
-  console.log("Connected");
-});
+import db from "../db.js";
 
 // GET posts/:id, 게시글 인덱스 번호로 게시글 정보 조회
 export function getPostById(req, res) {
   const id = req.params.id;
   const sql = `SELECT author_id, title, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE id = ${id}`;
-  con.query(sql, function (err, result) {
+  db.query(sql, function (err, result) {
     if (err) throw err;
     res.send(result);
   });
@@ -28,7 +15,7 @@ export function getPostByUserId(req, res) {
   const id = req.params.id;
   console.log(`id:${id}`);
   const sql = `SELECT id, title, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE author_id = ${id}`;
-  con.query(sql, function (err, result) {
+  db.query(sql, function (err, result) {
     if (err) throw err;
     res.send(result);
   });
@@ -39,7 +26,7 @@ export function getPostByKeyword(req, res) {
   const keyword = req.query.keyword;
   console.log(`keyword:${req.query.keyword}`);
   const sql = `SELECT id, title, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE title LIKE '%${keyword}%' OR content LIKE '%${keyword}%'`;
-  con.query(sql, function (err, result) {
+  db.query(sql, function (err, result) {
     if (err) throw err;
     res.send(result);
   });
@@ -56,7 +43,7 @@ export function makeNewPost(req, res) {
 
   const sql =
     "INSERT INTO post(author_id, title, content, datetime_created, use_enabled, comments_enabled) VALUES (?, ?, ?, ?, ?, ?)";
-  con.query(
+  db.query(
     sql,
     [
       author_id,
@@ -84,7 +71,7 @@ export function updatePost(req, res) {
 
   const sql = `UPDATE post SET title = "${title}", content = "${content}", datetime_created = "${datetime_created}", use_enabled="${use_enabled}", comments_enabled="${comments_enabled}" WHERE id = "${id}"`;
   console.log(sql);
-  con.query(sql, function (error, result) {
+  db.query(sql, function (error, result) {
     if (error) throw error;
     res.send(result);
   });
@@ -94,7 +81,7 @@ export function updatePost(req, res) {
 export function deletePost(req, res) {
   const id = req.params.id;
   const sql = `delete from realestatewiki.post where id= ${id}`;
-  con.query(sql, function (err, result) {
+  db.query(sql, function (err, result) {
     if (err) throw err;
     res.send(result);
   });

@@ -1,24 +1,10 @@
-import mysql from "mysql";
-import { config } from "../config.js";
-
-const con = mysql.createConnection({
-  host: config.DB.host,
-  user: config.DB.user,
-  password: config.DB.pw,
-  database: config.DB.dbname,
-});
-
-// db에 접속
-con.connect(function (err) {
-  if (err) throw err;
-  console.log("Connected");
-});
+import db from "../db.js";
 
 // 유저가 작성한 댓글 조회 (유저 인덱스 이용)
 export function getCommentsByUserId(req, res) {
   const id = req.params.id;
   const sql = `SELECT id, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), post_id FROM comment WHERE user_id = ${id}`;
-  con.query(sql, function (err, result) {
+  db.query(sql, function (err, result) {
     if (err) throw err;
     res.send(result);
   });
@@ -28,7 +14,7 @@ export function getCommentsByUserId(req, res) {
 export function getCommentsByPostId(req, res) {
   const id = req.params.id;
   const sql = `SELECT id, user_id, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), user_id FROM comment WHERE post_id = ${id}`;
-  con.query(sql, function (err, result) {
+  db.query(sql, function (err, result) {
     if (err) throw err;
     res.send(result);
   });
@@ -38,7 +24,7 @@ export function getCommentsByPostId(req, res) {
 export function getCommentsByAptId(req, res) {
   const id = req.params.id;
   const sql = `SELECT id, user_id, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), user_id FROM comment WHERE apt_id = ${id}`;
-  con.query(sql, function (err, result) {
+  db.query(sql, function (err, result) {
     if (err) throw err;
     res.send(result);
   });
@@ -54,7 +40,7 @@ export function makeNewComment(req, res) {
 
   const sql =
     "INSERT INTO comment(user_id, post_id, content, datetime_created, apt_id) VALUES (?, ?, ?, ?, ?)";
-  con.query(
+  db.query(
     sql,
     [user_id, post_id, content, datetime_created, apt_id],
     function (error, result) {
@@ -72,7 +58,7 @@ export function updateComment(req, res) {
 
   const sql = `UPDATE comment SET content = "${content}", datetime_created = "${datetime_created}" WHERE id = "${id}"`;
   console.log(sql);
-  con.query(sql, function (error, result) {
+  db.query(sql, function (error, result) {
     if (error) throw error;
     res.send(result);
   });
