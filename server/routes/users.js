@@ -1,6 +1,7 @@
 import express from "express";
 import * as usersController from "../controllers/users.js";
-import { body, param, validationResult } from "express-validator";
+import { body } from "express-validator";
+import { validate } from "../validate.js";
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.post(
     body("user_id")
       .trim()
       .isLowercase()
+      .withMessage("소문자로만 작성해주세요.")
       .isAlphanumeric()
       .isLength({ min: 5, max: 15 })
       .withMessage("5~15자의 영문소문자와 숫자의 조합으로 구성되어야 합니다."),
@@ -24,8 +26,15 @@ router.post(
     body("email").trim().isEmail().isLowercase(),
     body("phone_number").trim().isMobilePhone(),
     body("image").trim(),
+    validate,
   ],
-  usersController.makeNewUser
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array() });
+    }
+    usersController.makeNewUser;
+  }
 );
 // 유저 정보 수정
 router.put("/:id", usersController.updateUser);
