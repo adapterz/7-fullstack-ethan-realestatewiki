@@ -2,6 +2,11 @@ import db from "../db.js";
 
 // GET posts/:id, 게시글 인덱스 번호로 게시글 정보 조회
 export function getPostById(req, res) {
+  const isLogined = req.session.isLogined;
+  console.log(isLogined);
+  if (!isLogined) {
+    return res.status(401).json("로그인이 필요합니다.");
+  }
   const id = req.params.id;
   const sql = `SELECT author_id, title, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE id = ${id}`;
   db.query(sql, function (err, result) {

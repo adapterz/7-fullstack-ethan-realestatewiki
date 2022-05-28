@@ -1,81 +1,48 @@
 import express from "express";
+import cookieParser from "cookie-parser";
+import session from "express-session";
+import expressMysqlSession from "express-mysql-session";
 import usersRouter from "./routes/users.js";
 import postsRouter from "./routes/posts.js";
 import commentsRouter from "./routes/comments.js";
 import aptinfoRouter from "./routes/apt_info.js";
-import cookieParser from "cookie-parser";
-import session from "express-session";
-import expressMysqlSession from "express-mysql-session";
+import authenticationRounter from "./routes/authentication.js";
 import db from "../server/db.js";
 import { config } from "../server/config.js";
 
 const app = express();
+
+// mysqlsessionstore 적용
+const MySQLStore = expressMysqlSession(session);
+const options = {
+  host: config.DB.host,
+  port: config.PORT.portNumber,
+  user: config.DB.user,
+  password: config.DB.pw,
+  database: config.DB.dbname,
+};
+const sessionStore = new MySQLStore(options, db);
+app.use(
+  session({
+    key: "LoginSession",
+    secret: "secret key",
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    // cookie: {
+    //   maxAge: 1000,
+    // },
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
-
-db.connect(function (err) {
-  if (err) throw err;
-  console.log("DB Connected");
-});
-
-// const mySQLStore = expressMysqlSession(session);
-// const options = {
-//   host: config.DB.host,
-//   port: config.PORT.portNumber,
-//   user: config.DB.user,
-//   password: config.DB.pw,
-//   database: config.DB.dbname,
-// };
-// const sessionStore = new mySQLStore(options);
-
-// app.use(
-//   session({
-//     secret: "secret key",
-//     resave: false,
-//     saveUninitialized: true,
-//     store: sessionStore,
-//   })
-// );
-
-app.get("/login", function (req, res) {
-  const user = req.body;
-  console.log(user);
-  db.query(
-    "select nickname from user where user_id = ? and user_pw = ?",
-    [user.user_id, user.user_pw],
-    function (err, result) {
-      if (err) throw err;
-      if (result[0] !== undefined) {
-        req.session.uid = result[0].id;
-        req.session.author_id = result[0].author_id;
-        req.session.isLogined = true;
-        //세션 스토어가 이루어진 후 redirect를 해야함.
-        req.session.save(function () {
-          rsp.redirect("/");
-        });
-      }
-    }
-  );
-});
-
-app.get("/", (req, res) => {
-  console.log(req.session);
-  if (req.session.num === undefined) {
-    req.session.num = 1;
-  } else {
-    req.session.num += 1;
-  }
-
-  res.send(`View: ${req.session.num}`);
-});
 
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);
 app.use("/comments", commentsRouter);
 app.use("/aptinfos", aptinfoRouter);
-app.post("/practice", (req, res, next) => {
-  console.log(req.body);
-});
+app.use("/authentication", authenticationRounter);
 
 // 요청에 대해서 앞부분에서 처리 못했을 때.
 app.use((req, res, next) => {
@@ -129,3 +96,61 @@ app.listen(config.PORT.portNumber, () => {
 //     store: new FileStore(),
 //   })
 // );
+
+// const sessionStore = new mySQLStore(options);
+
+// app.use(
+//   session({
+//     key: "LoginSession",
+//     secret: "secret key",
+//     resave: false,
+//     saveUninitialized: true,
+//     store: new mySQLStore({
+//       host: config.DB.host,
+//       port: config.PORT.portNumber,
+//       user: config.DB.user,
+//       password: config.DB.pw,
+//       database: config.DB.dbname,
+//     }),
+//     cookie: {
+//       maxAge: 60 * 1000,
+//     },
+//   })
+// );
+
+// app.get("/login1", function (req, res) {
+//   const user = req.body;
+//   console.log(user);
+//   db.query(
+//     "select nickname from user where user_id = ? and user_pw = ?",
+//     [user.user_id, user.user_pw],
+//     function (err, result) {
+//       if (err) throw err;
+//       if (result[0] !== undefined) {
+//         req.session.uid = result[0].id;
+//         req.session.author_id = result[0].author_id;
+//         req.session.isLogined = true;
+//         //세션 스토어가 이루어진 후 redirect를 해야함.
+//         req.session.save(function () {
+//           rsp.redirect("/");
+//         });
+//       }
+//     }
+//   );
+// });
+
+// app.get("/", (req, res) => {
+//   console.log(req.session);
+//   if (req.session.num === undefined) {
+//     req.session.num = 1;
+//   } else {
+//     req.session.num += 1;
+//   }
+
+//   res.send(`View: ${req.session.num}`);
+// });
+
+// db.connect(function (err) {
+//   if (err) throw err;
+//   console.log("DB Connected");
+// });
