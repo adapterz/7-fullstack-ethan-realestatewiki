@@ -13,4 +13,7 @@ export const config = {
   PORT: {
     portNumber: process.env.PORT_NUM,
   },
+  DATA: {
+    serviceKey: process.env.DATA_SERVICEKEY,
+  },
 };

@@ -24,14 +24,17 @@ const options = {
 const sessionStore = new MySQLStore(options, db);
 app.use(
   session({
+    // 역할 공부
+    // 세션 쿠키 name
     key: "LoginSession",
+    // 세션 쿠키 secret
     secret: "secret key",
+    // 외부 저장소에 연결하여 session 저장
     store: sessionStore,
+    // 세션이 변경되지 않아도 저장할 것인지?
     resave: false,
+    // 세션이 저장되기 전에 uninitialized 상태로 미리 만들어서 저장
     saveUninitialized: false,
-    // cookie: {
-    //   maxAge: 1000,
-    // },
   })
 );
 

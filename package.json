@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/ethandeveloper2/7-fullstack-ethan-realestatewiki#readme",
   "dependencies": {
+    "axios": "^0.27.2",
     "bcrypt": "^5.0.1",
+    "cheerio": "^1.0.0-rc.11",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.1",
     "eslint-config-prettier": "^8.5.0",
@@ -31,8 +33,13 @@
     "express-validator": "^6.14.1",
     "memorystore": "^1.6.7",
     "mysql": "^2.18.1",
+    "mysql2": "^2.3.3",
+    "node-fetch": "^3.2.4",
     "prettier": "^2.6.2",
-    "session-file-store": "^1.5.0"
+    "request": "^2.88.2",
+    "session-file-store": "^1.5.0",
+    "xml-js": "^1.6.11",
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
     "eslint": "^8.15.0",

@@ -26,12 +26,15 @@ export function findByUserid(user_id) {
 }
 
 export async function makeNewUser(user) {
-  // 회원 가입시 사용자가 입력한 암호의 암호화
+  // 회원 가입시 사용자가 입력한 암호의 암호화.
+  // salt 글자수 지정
   const saltRound = 10;
+  // salt 생성
   const salt = await bcrypt.genSalt(saltRound);
+  // salt를 가지고 암호화된 패스워드 생성
   const hashedPw = await bcrypt.hash(user.user_pw, salt);
   const sql =
-    "INSERT INTO user(user_id, user_pw, nickname, datetime_signup, email, phone_number, image, salt) VALUES (?,?,?,?,?,?,?,?)";
+    "INSERT INTO user(user_id, user_pw, nickname, datetime_signup, email, phone_number, image) VALUES (?,?,?,?,?,?,?,?)";
   // query 다양한 예제 보고 할 것
   return new Promise((resolve, reject) => {
     db.query(
@@ -44,7 +47,6 @@ export async function makeNewUser(user) {
         user.email,
         user.phone_number,
         user.image,
-        salt,
       ],
       function (error, result) {
         if (error) {
