@@ -14,7 +14,7 @@ export function getUserById(id) {
 }
 
 export function findByUserid(user_id) {
-  const sql = `SELECT id, user_pw, nickname, DATE_FORMAT(datetime_signup, '%Y-%M-%D %H:%i:%s'), email, phone_number, image, salt FROM user WHERE user_id = "${user_id}"`;
+  const sql = `SELECT id, user_pw, nickname, DATE_FORMAT(datetime_signup, '%Y-%M-%D %H:%i:%s'), email, phone_number, image FROM user WHERE user_id = "${user_id}"`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
