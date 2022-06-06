@@ -1,33 +1,85 @@
 import db from "../db.js";
+import * as commentRepository from "../models/comments.js";
 
-// 유저가 작성한 댓글 조회 (유저 인덱스 이용)
-export function getCommentsByUserId(req, res) {
+// 댓글 검색 (by 댓글 번호)
+export async function getCommentById(req, res) {
+  if (!req.session.isLogined) {
+    return res
+      .status(401)
+      .json({ message: `Unauthorized : login is required.` });
+  }
   const id = req.params.id;
-  const sql = `SELECT id, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), post_id FROM comment WHERE user_id = ${id}`;
-  db.query(sql, function (err, result) {
-    if (err) throw err;
-    res.send(result);
-  });
+  const comment = await commentRepository.getCommentById(id);
+  console.log(comment);
+  if (comment[0] === undefined) {
+    return res
+      .status(404)
+      .json({ message: `Not Found : comment doesn't exist` });
+  }
+  return res.status(200).json(comment);
 }
 
-// 게시글 관련 댓글 조회 (게시글 인덱스 번호 이용)
-export function getCommentsByPostId(req, res) {
-  const id = req.params.id;
-  const sql = `SELECT id, user_id, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), user_id FROM comment WHERE post_id = ${id}`;
-  db.query(sql, function (err, result) {
-    if (err) throw err;
-    res.send(result);
-  });
+// 댓글 검색 (by 유저아이디 or 키워드)
+export async function searchComments(req, res) {
+  const isLogined = req.session.isLogined;
+  console.log(`isLogined = ${isLogined}`);
+  if (!isLogined) {
+    return res.status(401).json({ message: "Unauthorized Login is required." });
+  }
+  if (!req.query.userId && !req.query.keyword) {
+    return res.status(400).json({ message: "Please enter your search term." });
+  }
+  if (!req.query.userId) {
+    const keyword = req.query.keyword;
+    const comment = await commentRepository.getCommentByKeyword(keyword);
+    if (comment[0] === undefined) {
+      return res.status(404).json({ message: "comment doesn't exist" });
+    }
+    return res.status(200).json(comment);
+  }
+  const userId = req.query.userId;
+  console.log(`userid:${userId}`);
+  const comment = await commentRepository.getCommentByUserId(userId);
+  if (comment[0] === undefined) {
+    return res.status(404).json({ message: "comment doesn't exist" });
+  }
+  return res.status(200).json(comment);
 }
 
-// 유저가 작성한 댓글 조회 (아파트 번호 인덱스 이용)
-export function getCommentsByAptId(req, res) {
-  const id = req.params.id;
-  const sql = `SELECT id, user_id, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), user_id FROM comment WHERE apt_id = ${id}`;
-  db.query(sql, function (err, result) {
-    if (err) throw err;
-    res.send(result);
-  });
+// 댓글 조회 (by 관련 게시글 인덱스 번호)
+export async function getCommentsByPostId(req, res) {
+  const isLogined = req.session.isLogined;
+  console.log(`isLogined = ${isLogined}`);
+  if (!isLogined) {
+    return res.status(401).json({ message: "Unauthorized Login is required." });
+  }
+  const postId = req.params.id;
+  if (isNaN(postId)) {
+    return res.status(400).json({ message: `correct post number is required` });
+  }
+  const comment = await commentRepository.getCommentByPostId(postId);
+  if (comment[0] === undefined) {
+    return res.status(404).json({ message: "comment doesn't exist" });
+  }
+  return res.status(200).json(comment);
+}
+
+// 댓글 조회 (by 아파트 인덱스 번호)
+export async function getCommentsByAptId(req, res) {
+  const isLogined = req.session.isLogined;
+  console.log(`isLogined = ${isLogined}`);
+  if (!isLogined) {
+    return res.status(401).json({ message: "Unauthorized Login is required." });
+  }
+  const aptId = req.params.id;
+  if (isNaN(aptId)) {
+    return res.status(400).json({ message: `correct post number is required` });
+  }
+  const comment = await commentRepository.getCommentByAptId(aptId);
+  if (comment[0] === undefined) {
+    return res.status(404).json({ message: "comment doesn't exist" });
+  }
+  return res.status(200).json(comment);
 }
 
 // 게시글에 새로운 댓글 달기
