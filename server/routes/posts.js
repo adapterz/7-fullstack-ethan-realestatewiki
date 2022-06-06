@@ -9,6 +9,9 @@ const router = express.Router();
 const postContentOption = [
   body("author_id")
     .trim()
+    .notEmpty()
+    .withMessage("작성자 번호(author_id)는 숫자로 작성되어야 합니다.")
+    .bail()
     .isNumeric()
     .withMessage("작성자 번호(author_id)는 숫자로 작성되어야 합니다."),
   body("title")
@@ -40,16 +43,12 @@ const postContentOption = [
 // 게시글 번호로 게시글 데이터 조회
 router.get("/:id", postsController.getPostById);
 // 키워드 또는 유저 아이디로 게시글 데이터 조회
-router.get("/", postsController.getPost);
+router.get("/", postsController.searchPost);
 // 새로운 게시글 작성
-router.post("/", postContentOption, postsController.makeNewPost);
+router.post("/", postContentOption, postsController.makePost);
 // 게시글 번호에 해당하는 게시글 수정
 router.put("/:id", postContentOption, postsController.updatePost);
 // 게시글 삭제
 router.delete("/:id", postsController.deletePost);
 
 export default router;
-
-// 로 게시글 데이터 조회
-// router.get("/", postsController.getPostByUserId);
-// router.get("/", postsController.getPostByKeyword);
