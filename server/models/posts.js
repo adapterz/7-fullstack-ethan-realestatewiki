@@ -1,6 +1,6 @@
 import db from "../db.js";
 
-// 게시글 상세 조회
+// 게시글 검색 (by 게시글 번호)
 export function getPostById(id) {
   const sql = `SELECT author_id, title, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE id = "${id}"`;
   return new Promise((resolve, reject) => {

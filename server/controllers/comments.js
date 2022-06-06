@@ -82,36 +82,64 @@ export async function getCommentsByAptId(req, res) {
   return res.status(200).json(comment);
 }
 
-// 게시글에 새로운 댓글 달기
-export function makeNewComment(req, res) {
-  const user_id = req.body.user_id;
-  const post_id = req.body.post_id;
-  const apt_id = req.body.apt_id;
-  const content = req.body.content;
-  const datetime_created = req.body.datetime_created;
-
-  const sql =
-    "INSERT INTO comment(user_id, post_id, content, datetime_created, apt_id) VALUES (?, ?, ?, ?, ?)";
-  db.query(
-    sql,
-    [user_id, post_id, content, datetime_created, apt_id],
-    function (error, result) {
-      if (error) throw error;
-      res.send(result);
-    }
-  );
+// 댓글 작성
+export async function makeComment(req, res) {
+  if (!req.session.isLogined) {
+    return res
+      .status(401)
+      .json({ message: `Unauthorized : login is required.` });
+  }
+  const commentData = req.body;
+  const comment = await commentRepository.makeComment(commentData);
+  if (comment.insertId === undefined) {
+    return res.status(404).json({ message: `creating comment failure` });
+  }
+  return res.status(200).json({
+    message: `creating comment success(postid : ${comment.insertId})`,
+  });
 }
 
-// 댓글 수정하기
-export function updateComment(req, res) {
+// 댓글 수정
+export async function updateComment(req, res) {
+  if (!req.session.isLogined) {
+    return res
+      .status(401)
+      .json({ message: `Unauthorized : login is required.` });
+  }
   const id = req.params.id;
-  const content = req.body.content;
-  const datetime_created = req.body.datetime_created;
-
-  const sql = `UPDATE comment SET content = "${content}", datetime_created = "${datetime_created}" WHERE id = "${id}"`;
-  console.log(sql);
-  db.query(sql, function (error, result) {
-    if (error) throw error;
-    res.send(result);
+  const commentData = req.body;
+  const comment = await commentRepository.updateComment(id, commentData);
+  if (comment.insertId === undefined) {
+    return res.status(404).json({ message: `creating comment failure` });
+  }
+  if (comment.changedRows === 0) {
+    return res.status(200).json({
+      message: `there is no change have been made in your update request`,
+    });
+  }
+  return res.status(200).json({
+    message: `updating comment success(comment id : ${comment.message})`,
   });
+}
+
+// 댓글 삭제
+export async function deleteComment(req, res) {
+  if (!req.session.isLogined) {
+    return res
+      .status(401)
+      .json({ message: `Unauthorized : login is required.` });
+  }
+  const id = req.params.id;
+  if (isNaN(id)) {
+    return res
+      .status(400)
+      .json({ message: `correct comment number is required` });
+  }
+  const comment = await commentRepository.deleteComment(id);
+  if (comment.affectedRows !== 1) {
+    return res
+      .status(404)
+      .json({ message: `cannot delete comment. comment doesn't exist.` });
+  }
+  return res.status(200).json({ message: `comment delete success` });
 }

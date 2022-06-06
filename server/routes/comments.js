@@ -38,10 +38,10 @@ router.get("/getbypostid/:id", commentsController.getCommentsByPostId);
 router.get("/getbyaptid/:id", commentsController.getCommentsByAptId);
 
 // 댓글 작성
-router.post("/", commentContentption, commentsController.makeNewComment);
+router.post("/", commentContentption, commentsController.makeComment);
 // 댓글 수정
 router.put("/:id", commentContentption, commentsController.updateComment);
 // 댓글 삭제
-router.put("/:id", commentContentption, commentsController.updateComment);
+router.delete("/:id", commentsController.deleteComment);
 
 export default router;
