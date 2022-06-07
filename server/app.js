@@ -1,12 +1,13 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import bodyParser from "body-parser";
+// import bodyParser from "body-parser";
 import session from "express-session";
 import expressMysqlSession from "express-mysql-session";
 import usersRouter from "./routes/users.js";
 import postsRouter from "./routes/posts.js";
 import commentsRouter from "./routes/comments.js";
-import aptinfoRouter from "./routes/apt_info.js";
+import aptTransactionRouter from "./routes/apt_transaction.js";
+import aptInformationRouter from "./routes/apt_information.js";
 import authenticationRounter from "./routes/authentication.js";
 import db from "../server/db.js";
 import { config } from "../server/config.js";
@@ -45,7 +46,8 @@ app.use(cookieParser());
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);
 app.use("/comments", commentsRouter);
-app.use("/aptinfos", aptinfoRouter);
+app.use("/aptinfos", aptInformationRouter);
+app.use("/aptTransaction", aptTransactionRouter);
 app.use("/authentication", authenticationRounter);
 
 // app.use((req, res, next) => {

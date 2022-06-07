@@ -11,9 +11,8 @@ export async function getUserById(req, res) {
   if (user[0] === undefined) {
     // 에러 메시지를 _으로 잇는다? 찾아보자.
     res.status(404).json({ message: `user doesn't exist` });
-  } else {
-    res.status(200).send(user);
   }
+  res.status(200).send(user);
 }
 
 // 새로운 유저 데이터 추가, 회원 가입

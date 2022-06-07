@@ -1,14 +1,17 @@
 import db from "../db.js";
+import * as aptTransactionRepository from "../models/apt_transaction.js";
 
-// 아파트 세부 정보 조회(아파트 인덱스 번호 이용)
-export function getAptInfoById(req, res) {
-  const id = req.params.id;
-  const sql = `SELECT id, number_searched, name, address, households_number, number, area, image, DATE_FORMAT(approval_date, '%Y-%M-%D %H:%i:%s'), 
-  use_enabled, comments_enabled FROM apartment_information WHERE id = ${id}`;
-  db.query(sql, function (err, result) {
-    if (err) throw err;
-    res.send(result);
-  });
+export async function getAptTranactionListByAptName(req, res) {
+  const aptName = req.query.aptName;
+  const dong = req.query.dong;
+  const apt = await aptTransactionRepository.getAptTranactionListByAptName(
+    aptName,
+    dong
+  );
+  if (apt[0] === undefined) {
+    return res.status(404).json({ message: `apt doesn't exist` });
+  }
+  return res.status(200).send(apt);
 }
 
 // 페이지 당 게시글수
