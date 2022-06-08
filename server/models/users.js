@@ -1,6 +1,7 @@
 import db from "../db.js";
 import bcrypt from "bcrypt";
 
+// 유저 조회 (by 유저 인덱스 번호)
 export function getUserById(id) {
   const sql = `SELECT user_id, nickname, DATE_FORMAT(datetime_signup, '%Y-%M-%D %H:%i:%s'), email, phone_number, image FROM user WHERE id = ${id}`;
   return new Promise((resolve, reject) => {
@@ -13,8 +14,9 @@ export function getUserById(id) {
   });
 }
 
+// 유저 검색 (by 유저 아이디)
 export function findByUserid(user_id) {
-  const sql = `SELECT id, user_pw, nickname, DATE_FORMAT(datetime_signup, '%Y-%M-%D %H:%i:%s'), email, phone_number, image FROM user WHERE user_id = "${user_id}"`;
+  const sql = `SELECT id, user_id, user_pw, nickname, DATE_FORMAT(datetime_signup, '%Y-%M-%D %H:%i:%s'), email, phone_number, image FROM user WHERE user_id = "${user_id}"`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
@@ -25,7 +27,8 @@ export function findByUserid(user_id) {
   });
 }
 
-export async function makeNewUser(user) {
+// 회원 가입
+export async function makeUser(user) {
   // 회원 가입시 사용자가 입력한 암호의 암호화.
   // salt 글자수 지정
   const saltRound = 10;
@@ -58,8 +61,22 @@ export async function makeNewUser(user) {
   });
 }
 
+// 유저 정보 수정
 export function updateUser(id, user) {
   const sql = `UPDATE user SET user_id = "${user.user_id}", user_pw = "${user.user_pw}", nickname = "${user.nickname}", datetime_signup = "${user.datetime_signup}", email="${user.email}", phone_number="${user.phone_number}", image="${user.image}" WHERE id = "${id}"`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 유저 정보 삭제
+export function deleteUser(id) {
+  const sql = `delete from user where id= ${id}`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {

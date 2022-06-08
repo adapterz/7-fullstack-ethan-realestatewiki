@@ -1,4 +1,3 @@
-import db from "../db.js";
 import * as commentRepository from "../models/comments.js";
 
 // 댓글 검색 (by 댓글 번호)

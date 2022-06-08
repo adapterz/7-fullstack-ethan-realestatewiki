@@ -1,13 +1,15 @@
 import db from "../db.js";
 import * as aptTransactionRepository from "../models/apt_transaction.js";
 
-export async function getAptTranactionListByAptName(req, res) {
+// 아파트 거래 내역 조회(by 아파트 이름, 법정동)
+export async function getAptTranactionListByAptNameAndDong(req, res) {
   const aptName = req.query.aptName;
   const dong = req.query.dong;
-  const apt = await aptTransactionRepository.getAptTranactionListByAptName(
-    aptName,
-    dong
-  );
+  const apt =
+    await aptTransactionRepository.getAptTranactionListByAptNameAndDong(
+      aptName,
+      dong
+    );
   if (apt[0] === undefined) {
     return res.status(404).json({ message: `apt doesn't exist` });
   }

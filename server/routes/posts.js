@@ -5,7 +5,7 @@ import { validate } from "../validate.js";
 
 const router = express.Router();
 
-// 게시글 콘텐츠 검사 옵션
+// 게시글 콘텐츠 유효성 검사 옵션
 const postContentOption = [
   body("author_id")
     .trim()
@@ -40,13 +40,13 @@ const postContentOption = [
   validate,
 ];
 
-// 게시글 번호로 게시글 데이터 조회
+// 게시글 상세 조회 (by 게시글 인덱스 번호)
 router.get("/:id", postsController.getPostById);
-// 키워드 또는 유저 아이디로 게시글 데이터 조회
+// 게시글 검색 (by 키워드 or 유저아이디)
 router.get("/", postsController.searchPost);
-// 새로운 게시글 작성
+// 게시글 작성
 router.post("/", postContentOption, postsController.makePost);
-// 게시글 번호에 해당하는 게시글 수정
+// 게시글 수정
 router.put("/:id", postContentOption, postsController.updatePost);
 // 게시글 삭제
 router.delete("/:id", postsController.deletePost);

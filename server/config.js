@@ -16,4 +16,7 @@ export const config = {
   DATA: {
     serviceKey: process.env.DATA_SERVICEKEY,
   },
+  SESSION: {
+    secretKey: process.env.SESSION_SECRETKEY,
+  },
 };

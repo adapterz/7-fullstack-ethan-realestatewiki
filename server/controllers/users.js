@@ -1,51 +1,63 @@
-import db from "../db.js";
 import * as userRepository from "../models/users.js";
 
-// 회원 아이디로 유저 정보 조회하기
+// 유저 조회 (by 유저 인덱스 번호)
 export async function getUserById(req, res) {
+  async function auth(req, res) {
+    const sessionId = req.headers.cookie;
+  }
+  if (!req.session.isLogined) {
+    return res
+      .status(401)
+      .json({ message: `Unauthorized : login is required.` });
+  }
   const id = req.params.id;
-  // userRepository : 유저 데이터 관리 모델
   const user = await userRepository.getUserById(id);
-  // 유저가 존재하지않을 때, 에러 발생
-  // 짧은 조건문이면 한줄에 다 적는게 좋지 않을까?
   if (user[0] === undefined) {
-    // 에러 메시지를 _으로 잇는다? 찾아보자.
-    res.status(404).json({ message: `user doesn't exist` });
+    return res.status(404).json({ message: `user doesn't exist` });
   }
-  res.status(200).send(user);
+  return res.status(200).json(user);
 }
 
-// 새로운 유저 데이터 추가, 회원 가입
-export async function makeNewUser(req, res) {
-  const user = req.body;
-  const newUserData = await userRepository.makeNewUser(user);
-  console.log(newUserData);
-  if (!newUserData) {
-    res.status(404).json({ message: `created failure` });
-  } else {
-    res.status(200).send(user);
+// 회원 가입
+export async function makeUser(req, res) {
+  const userData = req.body;
+  const user = await userRepository.makeUser(userData);
+  console.log(user);
+  if (!user) {
+    return res.status(400).json({ message: `signup failed` });
   }
+  return res.status(200).json({ message: `signup success` });
 }
 
-// 회원 정보 수정
+// 유저 정보 수정
 export async function updateUser(req, res) {
   const id = req.params.id;
-  const user = req.body;
-  const newUserData = await userRepository.updateUser(id, user);
-  console.log(newUserData);
-  if (!newUserData) {
-    res.status(404).json({ message: `update failure` });
-  } else {
-    res.status(200).send(`${user.userId}' data is updated`);
+  const userData = req.body;
+  const user = await userRepository.updateUser(id, userData);
+  console.log(user);
+  if (!user) {
+    return res.status(404).json({ message: `update failure` });
   }
+  return res.status(200).json(`${user.userId}' data is updated`);
 }
 
-// 유저 삭제
-export function deleteUser(req, res) {
+// 유저 정보 삭제
+export async function deleteUser(req, res) {
+  if (!req.session.isLogined) {
+    return res
+      .status(401)
+      .json({ message: `Unauthorized : login is required.` });
+  }
   const id = req.params.id;
-  const sql = `delete from user where id= ${id}`;
-  db.query(sql, function (err, result) {
-    if (err) throw err;
-    res.send(result);
-  });
+  if (isNaN(id)) {
+    return res.status(400).json({ message: `correct user number is required` });
+  }
+  const user = await userRepository.deleteUser(id);
+  console.log(user);
+  if (user["affectedRows"] == 0) {
+    return res
+      .status(404)
+      .json({ message: `cannot delete user. user doesn't exist.` });
+  }
+  return res.status(200).json({ message: `user delete success` });
 }

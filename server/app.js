@@ -30,7 +30,7 @@ app.use(
     // 세션 쿠키 name
     key: "LoginSession",
     // 세션 쿠키 secret
-    secret: "secret key",
+    secret: config.SESSION.secretKey,
     // 외부 저장소에 연결하여 session 저장
     store: sessionStore,
     // 세션이 변경되지 않아도 저장할 것인지?

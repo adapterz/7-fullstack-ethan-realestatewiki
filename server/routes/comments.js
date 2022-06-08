@@ -5,6 +5,7 @@ import { validate } from "../validate.js";
 
 const router = express.Router();
 
+// 댓글 작성 관련 유효성 검사 옵션
 const commentContentption = [
   body("user_id")
     .trim()
@@ -30,13 +31,12 @@ const commentContentption = [
 
 // 댓글 상세 조회 (by 댓글 인덱스 번호)
 router.get("/detail/:id", commentsController.getCommentById);
-// 댓글 검색 (by 유저 아이디 or 키워드)
+// 댓글 검색 (by 키워드 or 유저아이디)
 router.get("/", commentsController.searchComments);
 // 댓글 검색 (by 관련 게시글 인덱스 번호)
 router.get("/getbypostid/:id", commentsController.getCommentsByPostId);
 // 댓글 검색 (by 관련 아파트 인덱스 번호)
 router.get("/getbyaptid/:id", commentsController.getCommentsByAptId);
-
 // 댓글 작성
 router.post("/", commentContentption, commentsController.makeComment);
 // 댓글 수정

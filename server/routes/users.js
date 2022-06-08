@@ -26,14 +26,19 @@ const passwordOption = {
   pointsForContainingNumber: 10,
   pointsForContainingSymbol: 10,
 };
+// 회원 정보 입력 관련 유효성 검사 옵션
 const userInputOption = [
   body("user_id")
     .trim()
     .isLowercase()
-    .withMessage("소문자로만 작성해주세요.")
+    .withMessage(
+      "아이디는 5~15자의 영문소문자와 숫자의 조합으로 구성되어야 합니다."
+    )
     .isAlphanumeric()
     .isLength({ min: 5, max: 15 })
-    .withMessage("5~15자의 영문소문자와 숫자의 조합으로 구성되어야 합니다."),
+    .withMessage(
+      "아이디는 5~15자의 영문소문자와 숫자의 조합으로 구성되어야 합니다."
+    ),
   body("user_pw")
     .trim()
     .isLength({ min: 5, max: 15 })
@@ -69,10 +74,10 @@ const userInputOption = [
   validate,
 ];
 
-// 유저 아이디에 맞는 유저 데이터 조회
+// 유저 조회 (by 유저 인덱스 번호)
 router.get("/my-page/:id", usersController.getUserById);
 // 회원 가입
-router.post("/", userInputOption, usersController.makeNewUser);
+router.post("/", userInputOption, usersController.makeUser);
 // 유저 정보 수정
 router.put("/:id", userInputOption, usersController.updateUser);
 // 유저 정보 삭제
