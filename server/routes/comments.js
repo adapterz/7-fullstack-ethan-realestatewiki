@@ -2,6 +2,7 @@ import express from "express";
 import * as commentsController from "../controllers/comments.js";
 import { body } from "express-validator";
 import { validate } from "../validate.js";
+import { isAuth } from "../auth.js";
 
 const router = express.Router();
 
@@ -38,10 +39,15 @@ router.get("/getbypostid/:id", commentsController.getCommentsByPostId);
 // 댓글 검색 (by 관련 아파트 인덱스 번호)
 router.get("/getbyaptid/:id", commentsController.getCommentsByAptId);
 // 댓글 작성
-router.post("/", commentContentption, commentsController.makeComment);
+router.post("/", isAuth, commentContentption, commentsController.makeComment);
 // 댓글 수정
-router.put("/:id", commentContentption, commentsController.updateComment);
+router.put(
+  "/:id",
+  isAuth,
+  commentContentption,
+  commentsController.updateComment
+);
 // 댓글 삭제
-router.delete("/:id", commentsController.deleteComment);
+router.delete("/:id", isAuth, commentsController.deleteComment);
 
 export default router;

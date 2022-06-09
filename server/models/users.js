@@ -86,3 +86,55 @@ export function deleteUser(id) {
     });
   });
 }
+
+// 유저 아이디 중복 여부 확인
+export function duplicatescheckUserId(user_id) {
+  const checkUserId = `SELECT user_id FROM user WHERE user_id = "${user_id}"`;
+  return new Promise((resolve, reject) => {
+    db.query(checkUserId, function (error, result) {
+      if (error) {
+        reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 유저 닉네임 중복 여부 확인
+export function duplicatescheckNickname(nickname) {
+  const checkNickname = `SELECT nickname FROM user WHERE nickname = "${nickname}"`;
+  return new Promise((resolve, reject) => {
+    db.query(checkNickname, function (error, result) {
+      if (error) {
+        reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 유저 이메일 중복 여부 확인
+export function duplicatescheckEmail(email) {
+  const checkNickname = `SELECT email FROM user WHERE email = "${email}"`;
+  return new Promise((resolve, reject) => {
+    db.query(checkNickname, function (error, result) {
+      if (error) {
+        reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 유저 핸드폰번호 중복 여부 확인
+export function duplicatescheckPhoneNumber(phone_number) {
+  const checkPhoneNumber = `SELECT email FROM user WHERE phone_number = "${phone_number}"`;
+  return new Promise((resolve, reject) => {
+    db.query(checkPhoneNumber, function (error, result) {
+      if (error) {
+        reject(error);
+      }
+      resolve(result);
+    });
+  });
+}

@@ -50,15 +50,6 @@ app.use("/aptinfos", aptInformationRouter);
 app.use("/aptTransaction", aptTransactionRouter);
 app.use("/authentication", authenticationRounter);
 
-// app.use((req, res, next) => {
-//   bodyParser.json()(req, res, (err) => {
-//     if (err) {
-//       console.error(err);
-//       return res.sendStatus(400); // Bad request
-//     }
-//     next();
-//   });
-// });
 // 요청에 대해서 앞부분에서 처리 못했을 때.
 app.use((req, res, next) => {
   res.status(404).send("Not available!");

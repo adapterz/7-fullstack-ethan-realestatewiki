@@ -2,14 +2,9 @@ import * as postRepository from "../models/posts.js";
 
 // 게시글 검색 (by 게시글 번호)
 export async function getPostById(req, res) {
-  if (!req.session.isLogined) {
-    return res
-      .status(401)
-      .json({ message: `Unauthorized : login is required.` });
-  }
   const id = req.params.id;
   const post = await postRepository.getPostById(id);
-  console.log(post);
+  // console.log(post);
   if (post[0] === undefined) {
     return res.status(404).json({ message: `Not Found : post doesn't exist` });
   }

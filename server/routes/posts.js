@@ -2,6 +2,7 @@ import express from "express";
 import * as postsController from "../controllers/posts.js";
 import { body } from "express-validator";
 import { validate } from "../validate.js";
+import { isAuth } from "../auth.js";
 
 const router = express.Router();
 
@@ -45,10 +46,10 @@ router.get("/:id", postsController.getPostById);
 // 게시글 검색 (by 키워드 or 유저아이디)
 router.get("/", postsController.searchPost);
 // 게시글 작성
-router.post("/", postContentOption, postsController.makePost);
+router.post("/", isAuth, postContentOption, postsController.makePost);
 // 게시글 수정
-router.put("/:id", postContentOption, postsController.updatePost);
+router.put("/:id", isAuth, postContentOption, postsController.updatePost);
 // 게시글 삭제
-router.delete("/:id", postsController.deletePost);
+router.delete("/:id", isAuth, postsController.deletePost);
 
 export default router;

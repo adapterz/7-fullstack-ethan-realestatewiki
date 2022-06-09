@@ -2,6 +2,7 @@ import express from "express";
 import * as usersController from "../controllers/users.js";
 import { body } from "express-validator";
 import { validate } from "../validate.js";
+import { isAuth } from "../auth.js";
 
 const router = express.Router();
 
@@ -75,12 +76,12 @@ const userInputOption = [
 ];
 
 // 유저 조회 (by 유저 인덱스 번호)
-router.get("/my-page/:id", usersController.getUserById);
+router.get("/my-page/:id", isAuth, usersController.getUserById);
 // 회원 가입
 router.post("/", userInputOption, usersController.makeUser);
 // 유저 정보 수정
-router.put("/:id", userInputOption, usersController.updateUser);
+router.put("/:id", isAuth, userInputOption, usersController.updateUser);
 // 유저 정보 삭제
-router.delete("/:id", usersController.deleteUser);
+router.delete("/:id", isAuth, usersController.deleteUser);
 
 export default router;
