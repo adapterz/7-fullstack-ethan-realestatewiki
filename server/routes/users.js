@@ -28,9 +28,10 @@ const passwordOption = {
   pointsForContainingSymbol: 10,
 };
 // 회원 정보 입력 관련 유효성 검사 옵션
+// 안에 공백 허용 가능?
 const userInputOption = [
   body("user_id")
-    .trim()
+    // .trim()
     .isLowercase()
     .withMessage(
       "아이디는 5~15자의 영문소문자와 숫자의 조합으로 구성되어야 합니다."
@@ -60,7 +61,27 @@ const userInputOption = [
     .withMessage(
       "닉네임은 3자 ~ 10자로 구성되어야 합니다.( 영문소문자, 대문자, 한글 사용 가능 )"
     ),
-  body("datetime_signup").trim(),
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage(
+      "이메일은 이메일 형식으로 입력되어야 합니다. ex)아이디@도메인주소"
+    ),
+  body("phone_number")
+    .trim()
+    .isMobilePhone("ko-KR")
+    .withMessage("핸드폰 번호 입력 형식이 맞지 않습니다."),
+  body("image").trim(),
+  validate,
+];
+
+const userInputOptionForUpdate = [
+  body("nickname")
+    .trim()
+    .isLength({ min: 5, max: 10 })
+    .withMessage(
+      "닉네임은 3자 ~ 10자로 구성되어야 합니다.( 영문소문자, 대문자, 한글 사용 가능 )"
+    ),
   body("email")
     .trim()
     .isEmail()
@@ -76,11 +97,11 @@ const userInputOption = [
 ];
 
 // 유저 조회 (by 유저 인덱스 번호)
-router.get("/my-page/:id", isAuth, usersController.getUserById);
+router.get("/", isAuth, usersController.getUserById);
 // 회원 가입
 router.post("/", userInputOption, usersController.makeUser);
 // 유저 정보 수정
-router.put("/:id", isAuth, userInputOption, usersController.updateUser);
+router.put("/", isAuth, userInputOptionForUpdate, usersController.updateUser);
 // 유저 정보 삭제
 router.delete("/:id", isAuth, usersController.deleteUser);
 

@@ -37,7 +37,7 @@ export async function makeUser(user) {
   // salt를 가지고 암호화된 패스워드 생성
   const hashedPw = await bcrypt.hash(user.user_pw, salt);
   const sql =
-    "INSERT INTO user(user_id, user_pw, nickname, datetime_signup, email, phone_number, image) VALUES (?,?,?,?,?,?,?)";
+    "INSERT INTO user(user_id, user_pw, nickname, datetime_signup, email, phone_number, image) VALUES (?,?,?,default,?,?,?)";
   // query 다양한 예제 보고 할 것
   return new Promise((resolve, reject) => {
     db.query(
@@ -46,7 +46,6 @@ export async function makeUser(user) {
         user.user_id,
         hashedPw,
         user.nickname,
-        user.datetime_signup,
         user.email,
         user.phone_number,
         user.image,
@@ -63,7 +62,8 @@ export async function makeUser(user) {
 
 // 유저 정보 수정
 export function updateUser(id, user) {
-  const sql = `UPDATE user SET user_id = "${user.user_id}", user_pw = "${user.user_pw}", nickname = "${user.nickname}", datetime_signup = "${user.datetime_signup}", email="${user.email}", phone_number="${user.phone_number}", image="${user.image}" WHERE id = "${id}"`;
+  const sql = `UPDATE user SET nickname = "${user.nickname}", email="${user.email}", phone_number="${user.phone_number}", image="${user.image}" WHERE id = ${id}`;
+  console.log(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
