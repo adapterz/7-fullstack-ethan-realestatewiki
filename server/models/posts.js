@@ -28,7 +28,7 @@ export function getPostByKeyword(keyword) {
 
 // 닉네임으로 게시글 검색
 export function getPostByUserId(userId) {
-  const sql = `select post.id, post.author_id, post.title, post.content, post.datetime_created, post.views, post.recommended_number, post.use_enabled, post.comments_enabled, user.user_id from post inner join user on post.author_id = user.id where user_id = "${userId}"`;
+  const sql = `select post.id, post.author_id, post.title, post.content, DATE_FORMAT(post.datetime_created, '%Y-%M-%D %H:%i:%s'), post.views, post.recommended_number, post.use_enabled, post.comments_enabled, user.user_id from post inner join user on post.author_id = user.id where user_id = "${userId}"`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
@@ -42,7 +42,7 @@ export function getPostByUserId(userId) {
 // 새로운 게시글 생성
 export function makePost(post) {
   const sql =
-    "INSERT INTO post(author_id, title, content, datetime_created, use_enabled, comments_enabled) VALUES (?, ?, ?, ?, ?, ?)";
+    "INSERT INTO post(author_id, title, content, use_enabled, comments_enabled) VALUES (?, ?, ?, ?, ?)";
   return new Promise((resolve, reject) => {
     db.query(
       sql,
@@ -50,7 +50,6 @@ export function makePost(post) {
         post.author_id,
         post.title,
         post.content,
-        post.datetime_created,
         post.use_enabled,
         post.comments_enabled,
       ],
@@ -66,26 +65,28 @@ export function makePost(post) {
 
 // 게시글 업데이트
 export function updatePost(id, post) {
-  const sql = `UPDATE post SET author_id = "${post.author_id}", title = "${post.title}", content = "${post.content}", datetime_created = "${post.datetime_created}", use_enabled="${post.use_enabled}", comments_enabled="${post.comments_enabled}" WHERE id = "${id}"`;
+  const sql = `UPDATE post SET author_id = "${post.author_id}", title = "${post.title}", content = "${post.content}", use_enabled="${post.use_enabled}", comments_enabled="${post.comments_enabled}" WHERE id = "${id}"`;
   console.log(sql);
   return new Promise((resolve, reject) => {
-    db.query(
-      sql,
-      [
-        post.author_id,
-        post.title,
-        post.content,
-        post.datetime_created,
-        post.use_enabled,
-        post.comments_enabled,
-      ],
-      function (error, result) {
-        if (error) {
-          return reject(error);
-        }
-        resolve(result);
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
       }
-    );
+      resolve(result);
+    });
+  });
+}
+
+export function checkPostForUpdateAndDelete(postIndex, userIndex) {
+  const sql = `SELECT title, content FROM post WHERE id = "${postIndex}" AND author_id = "${userIndex}"`;
+  console.log(sql);
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
   });
 }
 

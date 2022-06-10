@@ -40,11 +40,7 @@ export async function searchPost(req, res) {
 
 // 게시글 작성
 export async function makePost(req, res) {
-  if (!req.session.isLogined) {
-    return res
-      .status(401)
-      .json({ message: `Unauthorized : login is required.` });
-  }
+  req.body.author_id = req.index_check;
   const postData = req.body;
   if (!postData.author_id) {
     return res.status(400).json({ message: `creating post failure` });
@@ -60,12 +56,27 @@ export async function makePost(req, res) {
 
 // 게시글 수정
 export async function updatePost(req, res) {
-  if (!req.session.isLogined) {
-    return res
-      .status(401)
-      .json({ message: `Unauthorized : login is required.` });
-  }
+  // 수정할 게시글의 ID
   const id = req.params.id;
+  // id 파라메터를 숫자로 입력하지 않았을 때,
+  if (isNaN(id)) {
+    return res.status(400).json({ message: `correct post number is required` });
+  }
+  // 게시글의 id와 작성자의 index를 통해, 게시글이 해당 작성자의 것이 맞는지 확인
+  const postCheck = await postRepository.checkPostForUpdateAndDelete(
+    id,
+    req.index_check
+  );
+  // 게시글이 현 사용자가 쓴 글이 아니라면,
+  if (isEmptyArr(postCheck)) {
+    return res
+      .status(400)
+      .json({ message: `cannot update other client's post` });
+  }
+
+  // 현재 로그인된 사용자의 아이디를 게시글 작성자로 지정
+  req.body.author_id = req.index_check;
+  // body로 요청된 데이터를 postData 변수에 대입
   const postData = req.body;
   const post = await postRepository.updatePost(id, postData);
   if (post.insertId === undefined) {
@@ -83,15 +94,22 @@ export async function updatePost(req, res) {
 
 // 게시글 삭제
 export async function deletePost(req, res) {
-  if (!req.session.isLogined) {
-    return res
-      .status(401)
-      .json({ message: `Unauthorized : login is required.` });
-  }
   const id = req.params.id;
   if (isNaN(id)) {
     return res.status(400).json({ message: `correct post number is required` });
   }
+  // 게시글의 id와 작성자의 index를 통해, 게시글이 해당 작성자의 것이 맞는지 확인
+  const postCheck = await postRepository.checkPostForUpdateAndDelete(
+    id,
+    req.index_check
+  );
+  // 게시글이 현 사용자가 쓴 글이 아니라면,
+  if (isEmptyArr(postCheck)) {
+    return res
+      .status(400)
+      .json({ message: `cannot delete other client's post` });
+  }
+
   const post = await postRepository.deletePost(id);
   console.log(post);
   if (post.affectedRows !== 1) {
@@ -100,4 +118,12 @@ export async function deletePost(req, res) {
       .json({ message: `cannot delete post. post doesn't exist.` });
   }
   return res.status(200).json({ message: `post delete success` });
+}
+
+// 비어있는 배열인지 확인
+function isEmptyArr(arr) {
+  if (Array.isArray(arr) && arr.length === 0) {
+    return true;
+  }
+  return false;
 }

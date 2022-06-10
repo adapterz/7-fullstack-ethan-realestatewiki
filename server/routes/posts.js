@@ -8,13 +8,6 @@ const router = express.Router();
 
 // 게시글 콘텐츠 유효성 검사 옵션
 const postContentOption = [
-  body("author_id")
-    .trim()
-    .notEmpty()
-    .withMessage("작성자 번호(author_id)는 숫자로 작성되어야 합니다.")
-    .bail()
-    .isNumeric()
-    .withMessage("작성자 번호(author_id)는 숫자로 작성되어야 합니다."),
   body("title")
     .notEmpty()
     .withMessage("게시글 제목은 1~50자 이내로 작성되어야 합니다.")
@@ -23,17 +16,25 @@ const postContentOption = [
     .withMessage("게시글 제목은 1~50자 이내로 작성되어야 합니다."),
   body("content")
     .notEmpty()
+    .withMessage("게시글 내용은 1~2000자 이내로 작성되어야 합니다. (필수)")
     .isLength({ min: 1, max: 2000 })
-    .withMessage("게시글 내용은 1~2000자 이내로 작성되어야 합니다."),
-  body("datetime_created").trim(),
+    .withMessage("게시글 내용은 1~2000자 이내로 작성되어야 합니다. (필수)"),
   body("use_enabled")
     .trim()
+    .notEmpty()
+    .withMessage(
+      "게시글 숨김 여부는 반드시 0(숨김) 또는 1(표시)로 작성되어야 합니다."
+    )
     .isInt({ min: 0, max: 1 })
     .withMessage(
       "게시글 숨김 여부는 반드시 0(숨김) 또는 1(표시)로 작성되어야 합니다."
     ),
   body("comments_enabled")
     .trim()
+    .notEmpty()
+    .withMessage(
+      "게시글 숨김 여부는 반드시 0(숨김) 또는 1(표시)로 작성되어야 합니다."
+    )
     .isInt({ min: 0, max: 1 })
     .withMessage(
       "게시글 숨김 여부는 반드시 0(숨김) 또는 1(표시)로 작성되어야 합니다."
