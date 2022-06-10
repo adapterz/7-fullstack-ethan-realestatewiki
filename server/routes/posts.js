@@ -52,5 +52,6 @@ router.post("/", isAuth, postContentOption, postsController.makePost);
 router.put("/:id", isAuth, postContentOption, postsController.updatePost);
 // 게시글 삭제
 router.delete("/:id", isAuth, postsController.deletePost);
-
+// 좋아요 설정하기 / 취소하기
+router.get("/like/:id", isAuth, postsController.likePostById);
 export default router;

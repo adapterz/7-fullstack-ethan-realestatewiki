@@ -77,8 +77,9 @@ export function updatePost(id, post) {
   });
 }
 
-export function checkPostForUpdateAndDelete(postIndex, userIndex) {
-  const sql = `SELECT title, content FROM post WHERE id = "${postIndex}" AND author_id = "${userIndex}"`;
+// 게시글 삭제
+export function deletePost(id) {
+  const sql = `DELETE FROM post WHERE id = '${id}'`;
   console.log(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
@@ -90,15 +91,45 @@ export function checkPostForUpdateAndDelete(postIndex, userIndex) {
   });
 }
 
-// 게시글 삭제
-export function deletePost(id) {
-  const sql = `DELETE FROM post WHERE id = '${id}'`;
+// 게시글 좋아요
+export function likePost(postId) {
+  const sql = `UPDATE post SET recommended_number = post.recommended_number + 1 where id = '${postId}'`;
   console.log(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
         return reject(error);
       }
+      resolve(result);
+    });
+  });
+}
+
+// 게시글 좋아요
+export function dislikePost(postId) {
+  const sql = `UPDATE post SET recommended_number = post.recommended_number - 1 where id = '${postId}'`;
+  console.log(sql);
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      console.log(`dislikepost : ${result}`);
+      resolve(result);
+    });
+  });
+}
+
+// 게시글 좋아요
+export function checkLikeStatusInPost(postId, userId) {
+  const sql = `SELECT id, user_id, post_id FROM likes where post_id = "${postId}" AND user_id = "${userId}"`;
+  console.log(sql);
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      console.log(`checklikestatusinpost : ${result}`);
       resolve(result);
     });
   });
