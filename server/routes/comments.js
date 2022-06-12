@@ -8,20 +8,18 @@ const router = express.Router();
 
 // 댓글 작성 관련 유효성 검사 옵션
 const commentContentption = [
-  body("user_id")
-    .trim()
-    .notEmpty()
-    .withMessage("댓글 작성자 번호(user_id)는 숫자로 작성되어야 합니다.")
-    .bail()
-    .isNumeric()
-    .withMessage("댓글 작성자 번호(user_id)는 숫자로 작성되어야 합니다."),
   body("post_id")
     .trim()
-    .notEmpty()
-    .withMessage("관련 게시글 번호(post_id)는 숫자로 작성되어야 합니다.")
     .bail()
     .isNumeric()
-    .withMessage("관련 게시글 번호(post_id)는 숫자로 작성되어야 합니다."),
+    .withMessage("관련 게시글 번호(post_id)는 숫자로 작성되어야 합니다.")
+    .optional({ nullable: true }),
+  body("apt_id")
+    .trim()
+    .bail()
+    .isNumeric()
+    .withMessage("관련 게시글 번호(apt_id)는 숫자로 작성되어야 합니다.")
+    .optional({ nullable: true }),
   body("content")
     .notEmpty()
     .isLength({ min: 1, max: 200 })

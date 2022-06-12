@@ -67,20 +67,32 @@ export function getCommentByAptId(aptId) {
   });
 }
 
-// 댓글 작성
-export function makeComment(comment) {
+// 게시판 댓글 작성
+export function makePostComment(comment) {
   const sql =
-    "INSERT INTO comment(user_id, post_id, content, datetime_created, apt_id) VALUES (?, ?, ?, ?, ?)";
+    "INSERT INTO comment_post(user_id, post_id, content) VALUES (?, ?, ?)";
   return new Promise((resolve, reject) => {
     db.query(
       sql,
-      [
-        comment.user_id,
-        comment.post_id,
-        comment.content,
-        comment.datetime_created,
-        comment.apt_id,
-      ],
+      [comment.user_id, comment.post_id, comment.content],
+      function (error, result) {
+        if (error) {
+          return reject(error);
+        }
+        resolve(result);
+      }
+    );
+  });
+}
+
+// 아파트 정보 댓글 작성
+export function makeAptComment(comment) {
+  const sql =
+    "INSERT INTO comment_apt(user_id, apt_id, content) VALUES (?, ?, ?)";
+  return new Promise((resolve, reject) => {
+    db.query(
+      sql,
+      [comment.user_id, comment.apt_id, comment.content],
       function (error, result) {
         if (error) {
           return reject(error);

@@ -83,18 +83,33 @@ export async function getCommentsByAptId(req, res) {
 
 // 댓글 작성
 export async function makeComment(req, res) {
-  if (!req.session.isLogined) {
-    return res
-      .status(401)
-      .json({ message: `Unauthorized : login is required.` });
-  }
+  req.body.user_id = req.index_check;
   const commentData = req.body;
-  const comment = await commentRepository.makeComment(commentData);
+  // 어떤 댓글을 달지 나타내는 body값이 주어지지 않았을 때
+  if (
+    (commentData.apt_id && commentData.post_id) ||
+    (!commentData.apt_id && !commentData.post_id)
+  ) {
+    return res
+      .status(400)
+      .json({ message: `Choose which comment you want to post` });
+  }
+  // 받은 데이터에 아파트 아이디 데이터가 없다면
+  if (!commentData.apt_id) {
+    const comment = await commentRepository.makePostComment(commentData);
+    if (comment.insertId === undefined) {
+      return res.status(404).json({ message: `creating post_comment failure` });
+    }
+    return res.status(200).json({
+      message: `creating post_comment success(postid : ${comment.insertId})`,
+    });
+  }
+  const comment = await commentRepository.makeAptComment(commentData);
   if (comment.insertId === undefined) {
-    return res.status(404).json({ message: `creating comment failure` });
+    return res.status(404).json({ message: `creating apt_comment failure` });
   }
   return res.status(200).json({
-    message: `creating comment success(postid : ${comment.insertId})`,
+    message: `creating apt_comment success(postid : ${comment.insertId})`,
   });
 }
 
