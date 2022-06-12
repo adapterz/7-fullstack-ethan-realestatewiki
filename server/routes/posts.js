@@ -44,14 +44,20 @@ const postContentOption = [
 
 // 게시글 상세 조회 (by 게시글 인덱스 번호)
 router.get("/:id", postsController.getPostById);
+
 // 게시글 검색 (by 키워드 or 유저아이디)
 router.get("/", postsController.searchPost);
+
 // 게시글 작성
 router.post("/", isAuth, postContentOption, postsController.makePost);
+
 // 게시글 수정
 router.put("/:id", isAuth, postContentOption, postsController.updatePost);
+
 // 게시글 삭제
 router.delete("/:id", isAuth, postsController.deletePost);
+
 // 좋아요 설정하기 / 취소하기
 router.get("/like/:id", isAuth, postsController.likePostById);
+
 export default router;

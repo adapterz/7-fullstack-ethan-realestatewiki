@@ -4,12 +4,52 @@ import * as likeRepository from "../models/likes.js";
 // 게시글 검색 (by 게시글 번호)
 export async function getPostById(req, res) {
   const id = req.params.id;
+
+  if (isNaN(id)) {
+    return res.status(400).json({ message: `post number must be int` });
+  }
+
   const post = await postRepository.getPostById(id);
-  // console.log(post);
   if (post[0] === undefined) {
     return res.status(404).json({ message: `Not Found : post doesn't exist` });
   }
-  return res.status(200).json(post);
+
+  // 이전에 조회했던 게시글 정보
+  const priorViewPost = req.cookies.viewPost;
+  console.log(`조회해본 글 : ${priorViewPost}`);
+
+  // 이 방식대로 쿠키에 대한 조회수 집계를 적용한다면, 백만단위 게시글 번호(id : 1000000) 기준, 쿠키당 480개 게시글에 대한 조회 여부 확인 가능
+  // 이 방식의 문제점은, 앞부분의 게시글 조회 내역이 쿠키에 누적된다는 것임.
+  // 1번 게시글을 누른뒤 15분이 지나도, 2번 게시글을 14분째에 눌렀다면, 그 이후부터 15분이 지나야 1번 게시글의 조회수가 오르게 된다.
+  // 해결 방법, 시간이 지나면, 쿠키의 내용을 수정하는 방법 어떻게 할지 생각이 안남.
+  // 이전에 조회했던 게시글 정보가 없다면, 조회수를 올리고, 쿠키 viewPost에 게시글 id 추가
+  if (req.cookies.viewPost === undefined) {
+    await postRepository.views(id);
+    return res
+      .status(200)
+      .cookie("viewPost", id, { maxAge: 15 * 60 * 1000 })
+      .json(post);
+  }
+
+  // 조회했던 게시글 정보의 배열
+  const pageViewArray = req.cookies.viewPost.split(",");
+
+  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서, 현재 페이지 인덱스가 포함되어 있으면 조회수를 올리지 않는다., 쿠키에 현재 페이지 미포함.
+  if (
+    pageViewArray.find((view) => parseInt(view) === parseInt(id)) ==
+    parseInt(id)
+  ) {
+    return res
+      .status(200)
+      .cookie("viewPost", `${priorViewPost}`, { maxAge: 15 * 60 * 1000 })
+      .json(post);
+  }
+  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서, 현재 페이지 인덱스가 포함되어 없으면 조회수를 올리고, 쿠키에 현재 페이지 포함.
+  await postRepository.views(id);
+  return res
+    .status(200)
+    .cookie("viewPost", `${priorViewPost},${id}`, { maxAge: 15 * 60 * 1000 })
+    .json(post);
 }
 
 // 게시글 검색 (by 유저아이디 or 키워드)
@@ -163,3 +203,8 @@ function isEmptyArr(arr) {
   }
   return false;
 }
+
+// // 현재 시간 체크
+// let today = new Date();
+// let UTCstring = today.toUTCString(); // Wed, 14 Jun 2017 07:00:00 GMT
+// console.log(UTCstring);

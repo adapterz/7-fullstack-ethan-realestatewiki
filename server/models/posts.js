@@ -105,7 +105,7 @@ export function likePost(postId) {
   });
 }
 
-// 게시글 좋아요
+// 게시글 좋아요 취소
 export function dislikePost(postId) {
   const sql = `UPDATE post SET recommended_number = post.recommended_number - 1 where id = '${postId}'`;
   console.log(sql);
@@ -120,16 +120,15 @@ export function dislikePost(postId) {
   });
 }
 
-// 게시글 좋아요
-export function checkLikeStatusInPost(postId, userId) {
-  const sql = `SELECT id, user_id, post_id FROM likes where post_id = "${postId}" AND user_id = "${userId}"`;
+// 게시글 조회 시 조회수 증가
+export function views(postId) {
+  const sql = `UPDATE post SET views = post.views + 1 where id = '${postId}'`;
   console.log(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
         return reject(error);
       }
-      console.log(`checklikestatusinpost : ${result}`);
       resolve(result);
     });
   });
