@@ -1,8 +1,20 @@
 import db from "../db.js";
 
 // 댓글 검색 (by 댓글 번호)
-export function getCommentById(id) {
-  const sql = `SELECT user_id, post_id, apt_id content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s') FROM comment WHERE id = ${id}`;
+export function getPostCommentById(id) {
+  const sql = `SELECT user_id, post_id, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), DATE_FORMAT(datetime_updated, '%Y-%M-%D %H:%i:%s') FROM comment_post WHERE id = ${id}`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+export function getAptCommentById(id) {
+  const sql = `SELECT user_id, apt_id, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), DATE_FORMAT(datetime_updated, '%Y-%M-%D %H:%i:%s') FROM comment_apt WHERE id = ${id}`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
@@ -103,9 +115,9 @@ export function makeAptComment(comment) {
   });
 }
 
-// 댓글 수정
-export function updateComment(id, comment) {
-  const sql = `UPDATE comment SET user_id = "${comment.user_id}", post_id = "${comment.post_id}", apt_id = "${comment.apt_id}", content = "${comment.content}", datetime_created = "${comment.datetime_created}" WHERE id = "${id}"`;
+// 게시글 하단 댓글 수정
+export function updatePostComment(id, comment) {
+  const sql = `UPDATE comment_post SET content = "${comment.content}" WHERE id = "${id}"`;
   console.log(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
@@ -117,9 +129,37 @@ export function updateComment(id, comment) {
   });
 }
 
-// 댓글 삭제
-export function deleteComment(id) {
-  const sql = `DELETE FROM comment WHERE id = '${id}'`;
+// 아파트 정보 하단 댓글 수정
+export function updateAptComment(id, comment) {
+  const sql = `UPDATE comment_apt SET content = "${comment.content}" WHERE id = "${id}"`;
+  console.log(sql);
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 게시판 댓글 삭제
+export function deletePostComment(id) {
+  const sql = `DELETE FROM comment_post WHERE id = '${id}'`;
+  console.log(sql);
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 게시판 댓글 삭제
+export function deleteAptComment(id) {
+  const sql = `DELETE FROM comment_apt WHERE id = '${id}'`;
   console.log(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {

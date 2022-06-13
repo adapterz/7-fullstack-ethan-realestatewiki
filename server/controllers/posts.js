@@ -54,11 +54,6 @@ export async function getPostById(req, res) {
 
 // 게시글 검색 (by 유저아이디 or 키워드)
 export async function searchPost(req, res) {
-  const isLogined = req.session.isLogined;
-  console.log(`isLogined = ${isLogined}`);
-  if (!isLogined) {
-    return res.status(401).json({ message: "Unauthorized Login is required." });
-  }
   if (!req.query.userId && !req.query.keyword) {
     return res.status(400).json({ message: "Please enter your search term." });
   }

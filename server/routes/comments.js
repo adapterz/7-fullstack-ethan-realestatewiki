@@ -7,7 +7,7 @@ import { isAuth } from "../auth.js";
 const router = express.Router();
 
 // 댓글 작성 관련 유효성 검사 옵션
-const commentContentption = [
+const commentContentOption = [
   body("post_id")
     .trim()
     .bail()
@@ -22,6 +22,7 @@ const commentContentption = [
     .optional({ nullable: true }),
   body("content")
     .notEmpty()
+    .withMessage("댓글 내용은 1~200자 이내로 작성되어야 합니다.")
     .isLength({ min: 1, max: 200 })
     .withMessage("댓글 내용은 1~200자 이내로 작성되어야 합니다."),
   body("datetime_created").trim(),
@@ -37,15 +38,35 @@ router.get("/getbypostid/:id", commentsController.getCommentsByPostId);
 // 댓글 검색 (by 관련 아파트 인덱스 번호)
 router.get("/getbyaptid/:id", commentsController.getCommentsByAptId);
 // 댓글 작성
-router.post("/", isAuth, commentContentption, commentsController.makeComment);
-// 댓글 수정
+router.post("/", isAuth, commentContentOption, commentsController.makeComment);
+
+// 게시글 하단 댓글 수정
 router.put(
-  "/:id",
+  "/commentinpost/:id",
   isAuth,
-  commentContentption,
-  commentsController.updateComment
+  commentContentOption,
+  commentsController.updatePostComment
 );
-// 댓글 삭제
-router.delete("/:id", isAuth, commentsController.deleteComment);
+
+// 아파트 정보 하단 댓글 삭제
+router.put(
+  "/commentinaptinfo/:id",
+  isAuth,
+  commentContentOption,
+  commentsController.updateAptComment
+);
+
+// 게시글 하단 댓글 삭제
+router.delete(
+  "/commentinpost/:id",
+  isAuth,
+  commentsController.deletePostComment
+);
+// 아파트 정보 하단 댓글 삭제
+router.delete(
+  "/commentinaptinfo/:id",
+  isAuth,
+  commentsController.deleteAptComment
+);
 
 export default router;
