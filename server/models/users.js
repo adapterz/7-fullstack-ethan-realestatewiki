@@ -28,7 +28,7 @@ export function findByUserid(user_id) {
 }
 
 // 회원 가입
-export async function makeUser(user) {
+export async function makeUser(user, userImage) {
   // 회원 가입시 사용자가 입력한 암호의 암호화.
   // salt 글자수 지정
   const saltRound = 10;
@@ -40,6 +40,7 @@ export async function makeUser(user) {
     "INSERT INTO user(user_id, user_pw, nickname, datetime_signup, email, phone_number, image) VALUES (?,?,?,default,?,?,?)";
   // query 다양한 예제 보고 할 것
   return new Promise((resolve, reject) => {
+    console.log(sql);
     db.query(
       sql,
       [
@@ -48,7 +49,7 @@ export async function makeUser(user) {
         user.nickname,
         user.email,
         user.phone_number,
-        user.image,
+        userImage,
       ],
       function (error, result) {
         if (error) {
@@ -61,8 +62,8 @@ export async function makeUser(user) {
 }
 
 // 유저 정보 수정
-export function updateUser(id, user) {
-  const sql = `UPDATE user SET nickname = "${user.nickname}", email="${user.email}", phone_number="${user.phone_number}", image="${user.image}" WHERE id = ${id}`;
+export function updateUser(id, user, userImage) {
+  const sql = `UPDATE user SET nickname = "${user.nickname}", email="${user.email}", phone_number="${user.phone_number}", image="${userImage}" WHERE id = ${id}`;
   console.log(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {

@@ -3,7 +3,12 @@ import * as usersController from "../controllers/users.js";
 import { body } from "express-validator";
 import { validate } from "../validate.js";
 import { isAuth } from "../auth.js";
-
+import multer from "multer";
+// Multer는 파일 업로드를 위해 사용되는 multipart/form-data
+// 를 다루기 위한 node.js의 미들웨어이다.
+// Multer는 multipart(multipart/form-data)가 아닌 폼에서는 동작하지 않는다.
+// dest : 파일을 어디로 업로드할 지 결정
+const upload = multer({ dest: "server/uploads/" });
 const router = express.Router();
 
 // 비밀번호 유효성 검사 옵션
@@ -99,9 +104,20 @@ const userInputOptionForUpdate = [
 // 유저 조회 (by 유저 인덱스 번호)
 router.get("/", isAuth, usersController.getUserById);
 // 회원 가입
-router.post("/", userInputOption, usersController.makeUser);
+router.post(
+  "/",
+  upload.single("image"),
+  userInputOption,
+  usersController.makeUser
+);
 // 유저 정보 수정
-router.put("/", isAuth, userInputOptionForUpdate, usersController.updateUser);
+router.put(
+  "/",
+  isAuth,
+  upload.single("image"),
+  userInputOptionForUpdate,
+  usersController.updateUser
+);
 // 유저 정보 삭제
 router.delete("/:id", isAuth, usersController.deleteUser);
 

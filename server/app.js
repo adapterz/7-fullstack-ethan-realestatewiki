@@ -1,4 +1,5 @@
 import express from "express";
+
 import cookieParser from "cookie-parser";
 // import bodyParser from "body-parser";
 import session from "express-session";
@@ -39,9 +40,12 @@ app.use(
     saveUninitialized: false,
   })
 );
-
+// body-parser는 내장되어있음.  json 파싱하기 위해서 설정만 추가
 app.use(express.json());
 app.use(cookieParser());
+// app.post("/profile", upload.single("avatar"), (req, res, next) => {
+//   res.send(`Uploaded : ${req.file}`);
+// });
 
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);

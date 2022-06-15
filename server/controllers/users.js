@@ -1,4 +1,5 @@
 import * as userRepository from "../models/users.js";
+import fs from "fs";
 
 // 나의 정보 조회 (로그인 후 나의 정보 조회)
 export async function getUserById(req, res) {
@@ -18,39 +19,90 @@ export async function getUserById(req, res) {
 // 회원 가입
 export async function makeUser(req, res) {
   const userData = req.body;
+  let userImage = null;
+  console.log(userData);
+
+  // 이미지가 첨부되지 않았을 때 회원 가입 방법
+  if (req.file == undefined) {
+    const checkUserId = await userRepository.duplicatescheckUserId(
+      userData.user_id
+    );
+    // UserId가 중복될 때,
+    if (!isEmptyArr(checkUserId)) {
+      return res.status(400).json({ message: `Duplicate user ID` });
+    }
+
+    // Nickname이 중복될 때,
+    const checkNickname = await userRepository.duplicatescheckNickname(
+      userData.nickname
+    );
+    if (!isEmptyArr(checkNickname)) {
+      return res.status(400).json({ message: `Duplicate nickname` });
+    }
+
+    // email이 중복될 때,
+    const checkEmail = await userRepository.duplicatescheckEmail(
+      userData.email
+    );
+    if (!isEmptyArr(checkEmail)) {
+      return res.status(400).json({ message: `Duplicate email` });
+    }
+
+    //핸드폰 번호가 중복될 때
+    const checkPhoneNumber = await userRepository.duplicatescheckPhoneNumber(
+      userData.phone_number
+    );
+    if (!isEmptyArr(checkPhoneNumber)) {
+      return res.status(400).json({ message: `Duplicate phonenumber` });
+    }
+    //회원 가입 실패 시
+    const user = await userRepository.makeUser(userData, userImage);
+    if (!user) {
+      return res.status(400).json({ message: `signup failed` });
+    }
+    return res.status(200).json({ message: `signup success` });
+  }
+
+  // 이미지가 첨부되었을 때 회원 가입
+  userImage = `${req.file.destination}${req.file.filename}`;
   const checkUserId = await userRepository.duplicatescheckUserId(
     userData.user_id
   );
   // UserId가 중복될 때,
   if (!isEmptyArr(checkUserId)) {
+    deletefileOfInvalidClient(userImage);
     return res.status(400).json({ message: `Duplicate user ID` });
   }
 
+  // Nickname이 중복될 때,
   const checkNickname = await userRepository.duplicatescheckNickname(
     userData.nickname
   );
-  // Nickname이 중복될 때,
   if (!isEmptyArr(checkNickname)) {
+    deletefileOfInvalidClient(userImage);
     return res.status(400).json({ message: `Duplicate nickname` });
   }
 
-  const checkEmail = await userRepository.duplicatescheckEmail(userData.email);
   // email이 중복될 때,
+  const checkEmail = await userRepository.duplicatescheckEmail(userData.email);
   if (!isEmptyArr(checkEmail)) {
+    deletefileOfInvalidClient(userImage);
     return res.status(400).json({ message: `Duplicate email` });
   }
 
+  //핸드폰 번호가 중복될 때
   const checkPhoneNumber = await userRepository.duplicatescheckPhoneNumber(
     userData.phone_number
   );
-  //핸드폰 번호가 중복될 때
   if (!isEmptyArr(checkPhoneNumber)) {
+    deletefileOfInvalidClient(userImage);
     return res.status(400).json({ message: `Duplicate phonenumber` });
   }
 
-  const user = await userRepository.makeUser(userData);
   //회원 가입 실패 시
+  const user = await userRepository.makeUser(userData, userImage);
   if (!user) {
+    deletefileOfInvalidClient(userImage);
     return res.status(400).json({ message: `signup failed` });
   }
   return res.status(200).json({ message: `signup success` });
@@ -61,9 +113,55 @@ export async function makeUser(req, res) {
 export async function updateUser(req, res) {
   const id = req.index_check;
   const userData = req.body;
-  console.log(`id : ${id}`);
-  console.log(userData);
+  let userImage = null;
 
+  // 사진 파일이 첨부되어 있지 않은 경우
+  if (req.file == undefined) {
+    if (req.nickname_check !== userData.nickname) {
+      // 중복되는 닉네임이 있는지 찾는다.
+      const checkNickname = await userRepository.duplicatescheckNickname(
+        userData.nickname
+      );
+      // 중복되는 닉네임이 있다면, 오류 발생
+      if (!isEmptyArr(checkNickname)) {
+        return res.status(400).json({ message: `Duplicate nickname` });
+      }
+    }
+    // 기존 사용하던 이메일과 현재 수정 요청한 이메일이 다를 경우
+    if (req.email_check !== userData.email) {
+      // 중복되는 이메일이 있는지 찾는다.
+      const checkEmail = await userRepository.duplicatescheckEmail(
+        userData.email
+      );
+      // 중복되는 이메일이 있다면, 오류 발생
+      if (!isEmptyArr(checkEmail)) {
+        return res.status(400).json({ message: `Duplicate email1` });
+      }
+    }
+    // 기존 사용하던 핸드폰번호과 현재 수정 요청한 핸드폰번호이 다를 경우
+    if (req.phone_number_check !== userData.phone_number) {
+      // 중복되는 핸드폰번호이 있는지 찾는다.
+      const checkPhoneNumber = await userRepository.duplicatescheckPhoneNumber(
+        userData.phone_number
+      );
+      // 중복되는 핸드폰번호이 있다면, 오류 발생
+      if (!isEmptyArr(checkPhoneNumber)) {
+        return res.status(400).json({ message: `Duplicate phonenumber1` });
+      }
+    }
+
+    // 기존의 이미지 경로를 가져와서, 유저 이미지 데이터에 넣는다.
+    const userDataFromDB = await userRepository.getUserById(id);
+    userImage = userDataFromDB[0].image;
+    console.log(userImage);
+    const user = await userRepository.updateUser(id, userData, userImage);
+    if (!user) {
+      return res.status(404).json({ message: `update failure` });
+    }
+    return res.status(200).json({ message: `update success` });
+  }
+
+  // 사진 파일이 첨부되어 있는 경우
   // 기존 사용하던 닉네임과 현재 수정 요청한 닉네임이 다를 경우
   if (req.nickname_check !== userData.nickname) {
     // 중복되는 닉네임이 있는지 찾는다.
@@ -72,7 +170,8 @@ export async function updateUser(req, res) {
     );
     // 중복되는 닉네임이 있다면, 오류 발생
     if (!isEmptyArr(checkNickname)) {
-      return res.status(400).json({ message: `Duplicate nickname` });
+      deletefileOfInvalidClient(req.file.path);
+      return res.status(400).json({ message: `Duplicate nickname100` });
     }
   }
   // 기존 사용하던 이메일과 현재 수정 요청한 이메일이 다를 경우
@@ -83,6 +182,7 @@ export async function updateUser(req, res) {
     );
     // 중복되는 이메일이 있다면, 오류 발생
     if (!isEmptyArr(checkEmail)) {
+      deletefileOfInvalidClient(req.file.path);
       return res.status(400).json({ message: `Duplicate email1` });
     }
   }
@@ -94,16 +194,23 @@ export async function updateUser(req, res) {
     );
     // 중복되는 핸드폰번호이 있다면, 오류 발생
     if (!isEmptyArr(checkPhoneNumber)) {
+      deletefileOfInvalidClient(req.file.path);
       return res.status(400).json({ message: `Duplicate phonenumber1` });
     }
   }
 
-  const user = await userRepository.updateUser(id, userData);
-  // console.log(user);
+  // 기존에 저장된 이미지 파일의 경로를 priorUserImage에 지정
+  const userDataFromDB = await userRepository.getUserById(id);
+  const priorUserImage = userDataFromDB[0].image;
+  // 기존 저장된 이미지 파일 삭제
+  deletefileOfInvalidClient(priorUserImage);
+  // 새롭게 요청된 이미지 파일 DB에 업데이트 하기
+  userImage = `${req.file.destination}${req.file.filename}`;
+  const user = await userRepository.updateUser(id, userData, userImage);
   if (!user) {
     return res.status(404).json({ message: `update failure` });
   }
-  return res.status(200).json({ message: `update failure` });
+  return res.status(200).json({ message: `update success` });
 }
 
 // 유저 정보 삭제
@@ -135,30 +242,14 @@ function isEmptyArr(arr) {
   return false;
 }
 
-// async function duplicatescheck(req, res) {
-//   const checkUserId = await userRepository.duplicatescheckUserId(
-//     req.body.user_id
-//   );
-//   if (!isEmptyArr(checkUserId)) {
-//     return res.status(400).json({ message: `Duplicate user ID` });
-//   }
-
-//   const checkNickname = await userRepository.duplicatescheckNickname(
-//     req.body.nickname
-//   );
-//   if (!isEmptyArr(checkNickname)) {
-//     return res.status(400).json({ message: `Duplicate nickname` });
-//   }
-
-//   const checkEmail = await userRepository.duplicatescheckEmail(req.body.email);
-//   if (!isEmptyArr(checkEmail)) {
-//     return res.status(400).json({ message: `Duplicate email` });
-//   }
-
-//   const checkPhoneNumber = await userRepository.duplicatescheckPhoneNumber(
-//     req.body.phone_number
-//   );
-//   if (!isEmptyArr(checkPhoneNumber)) {
-//     return res.status(400).json({ message: `Duplicate phonenumber` });
-//   }
-// }
+// multer로 인하여 미리 저장되었지만, 다른 유저 데이터의 유효성 검사 미통과로 인해, 저장된 파일을 삭제하는 메서드
+function deletefileOfInvalidClient(userImagePath) {
+  if (fs.existsSync(userImagePath)) {
+    try {
+      fs.unlinkSync(userImagePath);
+      console.log("image delete ");
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}
