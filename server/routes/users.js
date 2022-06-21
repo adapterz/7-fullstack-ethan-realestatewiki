@@ -3,54 +3,8 @@ import * as usersController from "../controllers/users.js";
 import { body } from "express-validator";
 import { validate } from "../validate.js";
 import { isAuth } from "../auth.js";
-import multer from "multer";
-// Multer는 파일 업로드를 위해 사용되는 multipart/form-data
-// 를 다루기 위한 node.js의 미들웨어이다.
-// Multer는 multipart(multipart/form-data)가 아닌 폼에서는 동작하지 않는다.
-// dest : 파일을 어디로 업로드할 지 결정
-// const upload = multer({ dest: "server/uploads/" });
-
-const fileFilter = (req, file, cb) => {
-  // 확장자 필터링
-  if (
-    file.mimetype !== "image/png" ||
-    file.mimetype !== "image/jpg" ||
-    file.mimetype !== "image/jpeg" ||
-    file.mimetype !== "image/gif"
-  ) {
-    // 다른 mimetype은 저장되지 않음
-    req.fileValidationError = "jpg,jpeg,png,gif,webp 파일만 업로드 가능합니다.";
-    return cb(null, false, req.fileValidationError);
-  }
-  cb(null, true);
-};
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "server/uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(
-      null,
-      file.originalname.split(".")[0] +
-        Date.now() +
-        "." +
-        file.originalname.split(".")[1]
-    );
-  },
-  limits: {
-    filesize: 20 * 1024 * 1024,
-  },
-});
-
-const upload = multer({ storage: storage, fileFilter: fileFilter });
-
-function imageExtensionErrorHandler(req, res, next) {
-  if (req.fileValidationError) {
-    return res.status(400).json({ msg: `${req.fileValidationError}` });
-  }
-  next();
-}
+import upload from "../multer.js";
+import { imageExtensionErrorHandler } from "../multer.js";
 
 const router = express.Router();
 
