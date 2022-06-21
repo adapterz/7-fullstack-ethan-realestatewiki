@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 // import bodyParser from "body-parser";
 import session from "express-session";
 import expressMysqlSession from "express-mysql-session";
+import helmet from "helmet";
 import usersRouter from "./routes/users.js";
 import postsRouter from "./routes/posts.js";
 import commentsRouter from "./routes/comments.js";
@@ -14,7 +15,7 @@ import db from "../server/db.js";
 import { config } from "../server/config.js";
 
 const app = express();
-
+app.use(helmet());
 // mysqlsessionstore 적용
 const MySQLStore = expressMysqlSession(session);
 const options = {
