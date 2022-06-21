@@ -77,7 +77,9 @@ export async function makeUser(req, res) {
   // 첨부된 이미지의 형식이 잘못되었을 때,
   // multer라이브러리를 사용한 이미지 업로드 처리 중 발생한 이미지 형식 오류
   if (req.fileValidationError) {
-    return res.status(400).json({ message: `you can upload only image file` });
+    return res
+      .status(400)
+      .json({ message: `Bad Request : you can upload only image file` });
   }
 
   userImage = `${req.file.destination}${req.file.filename}`;
@@ -235,7 +237,9 @@ export async function updateUser(req, res) {
   console.log(userImage);
   const user = await userRepository.updateUser(id, userData, userImage);
   if (!user) {
-    return res.status(404).json({ message: `update failure` });
+    return res
+      .status(500)
+      .json({ message: `Internal Server Error : update failure` });
   }
 
   // 세션 data 정보 변경

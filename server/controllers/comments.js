@@ -16,13 +16,17 @@ export async function getCommentById(req, res) {
 // 댓글 검색 (by 유저아이디 or 키워드)
 export async function searchComments(req, res) {
   if (!req.query.userId && !req.query.keyword) {
-    return res.status(400).json({ message: "Please enter your search term." });
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter your search term." });
   }
   if (!req.query.userId) {
     const keyword = req.query.keyword;
     const comment = await commentRepository.getCommentByKeyword(keyword);
     if (comment[0] === undefined) {
-      return res.status(404).json({ message: "comment doesn't exist" });
+      return res
+        .status(404)
+        .json({ message: "Not Found : comment doesn't exist" });
     }
     return res.status(200).json(comment);
   }
@@ -30,7 +34,9 @@ export async function searchComments(req, res) {
   console.log(`userid:${userId}`);
   const comment = await commentRepository.getCommentByUserId(userId);
   if (comment[0] === undefined) {
-    return res.status(404).json({ message: "comment doesn't exist" });
+    return res
+      .status(404)
+      .json({ message: "Not Found : comment doesn't exist" });
   }
   return res.status(200).json(comment);
 }
@@ -39,11 +45,15 @@ export async function searchComments(req, res) {
 export async function getCommentsByPostId(req, res) {
   const postId = req.params.id;
   if (isNaN(postId)) {
-    return res.status(400).json({ message: `correct post number is required` });
+    return res
+      .status(400)
+      .json({ message: `Bad Request : correct post number is required` });
   }
   const comment = await commentRepository.getCommentByPostId(postId);
   if (comment[0] === undefined) {
-    return res.status(404).json({ message: "comment doesn't exist" });
+    return res
+      .status(404)
+      .json({ message: "Not Found : comment doesn't exist" });
   }
   return res.status(200).json(comment);
 }
@@ -52,11 +62,15 @@ export async function getCommentsByPostId(req, res) {
 export async function getCommentsByAptId(req, res) {
   const aptId = req.params.id;
   if (isNaN(aptId)) {
-    return res.status(400).json({ message: `correct post number is required` });
+    return res
+      .status(400)
+      .json({ message: `Bad Request : correct post number is required` });
   }
   const comment = await commentRepository.getCommentByAptId(aptId);
   if (comment[0] === undefined) {
-    return res.status(404).json({ message: "comment doesn't exist" });
+    return res
+      .status(404)
+      .json({ message: "Not Found : comment doesn't exist" });
   }
   return res.status(200).json(comment);
 }
@@ -74,24 +88,28 @@ export async function makeComment(req, res) {
   ) {
     return res
       .status(400)
-      .json({ message: `Choose which comment you want to post` });
+      .json({ message: `Bad Request : Choose which comment you want to post` });
   }
   // 받은 데이터에 아파트 아이디 데이터가 없다면
   if (!commentData.apt_id) {
     const comment = await commentRepository.makePostComment(commentData);
     if (comment.insertId === undefined) {
-      return res.status(404).json({ message: `creating post_comment failure` });
+      return res.status(500).json({
+        message: `Internal Server Error : creating post_comment failure`,
+      });
     }
-    return res.status(200).json({
-      message: `creating post_comment success(postid : ${comment.insertId})`,
+    return res.status(201).json({
+      message: `Created : creating post_comment success(postid : ${comment.insertId})`,
     });
   }
   const comment = await commentRepository.makeAptComment(commentData);
   if (comment.insertId === undefined) {
-    return res.status(404).json({ message: `creating apt_comment failure` });
+    return res.status(500).json({
+      message: `Internal Server Error : ccreating apt_comment failure`,
+    });
   }
-  return res.status(200).json({
-    message: `creating apt_comment success(postid : ${comment.insertId})`,
+  return res.status(201).json({
+    message: `Created creating apt_comment success(postid : ${comment.insertId})`,
   });
 }
 
@@ -100,20 +118,24 @@ export async function updatePostComment(req, res) {
   // 코멘트 아이디를 파라메터로 받는다.
   const id = req.params.id;
   if (isNaN(id)) {
-    return res.status(400).json({ message: `correct post number is required` });
+    return res
+      .status(400)
+      .json({ message: `Bad Request : correct post number is required` });
   }
 
   const checkComment = await commentRepository.getPostCommentById(id);
   console.log(checkComment);
   // 요청한 댓글 번호에 해당하는 댓글이 없다면,
   if (isEmptyArr(checkComment)) {
-    return res.status(400).json({ message: `comment doesn't exist` });
+    return res
+      .status(404)
+      .json({ message: `Not Found : comment doesn't exist` });
   }
   // 요청한 댓글을 작성자가 현재 사용자와 일치하지 않는다면,
   if (checkComment[0].user_id !== parseInt(req.index_check)) {
     return res
-      .status(400)
-      .json({ message: `cannot update other client's comment` });
+      .status(403)
+      .json({ message: `Forbidden : cannot update other client's comment` });
   }
   // 수정할 댓글 내용을 body로 받아서 수정한다.
   const commentData = req.body;
@@ -121,13 +143,13 @@ export async function updatePostComment(req, res) {
 
   // 댓글 수정 사항이 이전과 동일하다면,
   if (comment.changedRows === 0) {
-    return res.status(200).json({
-      message: `there is no change have been made in your update request`,
+    return res.status(204).json({
+      message: `No Content : there is no change have been made in your update request`,
     });
   }
   // 댓글 수정이 완료된다면,
-  return res.status(200).json({
-    message: `updating comment success(comment id : ${comment.message})`,
+  return res.status(201).json({
+    message: `Created : updating comment success(comment id : ${comment.message})`,
   });
 }
 
@@ -136,20 +158,24 @@ export async function updateAptComment(req, res) {
   // 코멘트 아이디를 파라메터로 받는다.
   const id = req.params.id;
   if (isNaN(id)) {
-    return res.status(400).json({ message: `correct post number is required` });
+    return res
+      .status(400)
+      .json({ message: `Bad Request : correct post number is required` });
   }
 
   const checkComment = await commentRepository.getAptCommentById(id);
   console.log(checkComment);
   // 요청한 댓글 번호에 해당하는 댓글이 없다면,
   if (isEmptyArr(checkComment)) {
-    return res.status(400).json({ message: `comment doesn't exist` });
+    return res
+      .status(404)
+      .json({ message: `Not Found : comment doesn't exist` });
   }
   // 요청한 댓글을 작성자가 현재 사용자와 일치하지 않는다면,
   if (checkComment[0].user_id !== parseInt(req.index_check)) {
     return res
-      .status(400)
-      .json({ message: `cannot update other client's comment` });
+      .status(403)
+      .json({ message: `Forbidden : cannot update other client's comment` });
   }
   // 수정할 댓글 내용을 body로 받아서 수정한다.
   const commentData = req.body;
@@ -157,13 +183,13 @@ export async function updateAptComment(req, res) {
 
   // 댓글 수정 사항이 이전과 동일하다면,
   if (comment.changedRows === 0) {
-    return res.status(200).json({
-      message: `there is no change have been made in your update request`,
+    return res.status(204).json({
+      message: `No Content : there is no change have been made in your update request`,
     });
   }
   // 댓글 수정이 완료된다면,
-  return res.status(200).json({
-    message: `updating comment(aptinfo) success(comment id : ${comment.message})`,
+  return res.status(201).json({
+    message: `Created : updating comment(aptinfo) success(comment id : ${comment.message})`,
   });
 }
 
@@ -174,57 +200,65 @@ export async function deletePostComment(req, res) {
   if (isNaN(id)) {
     return res
       .status(400)
-      .json({ message: `correct comment number is required` });
+      .json({ message: `Bad Request : correct comment number is required` });
   }
   const checkComment = await commentRepository.getPostCommentById(id);
   // 삭제 요청한 댓글이 없다면,
   if (isEmptyArr(checkComment)) {
-    return res.status(400).json({ message: `comment doesn't exist` });
+    return res
+      .status(404)
+      .json({ message: `Not Found : comment doesn't exist` });
   }
   // 삭제 요청한 댓글의 작성자가 현재 사용자와 일치하지 않는다면,
   if (checkComment[0].user_id !== parseInt(req.index_check)) {
     return res
-      .status(400)
-      .json({ message: `cannot delete other client's comment` });
+      .status(403)
+      .json({ message: `Forbidden : cannot delete other client's comment` });
   }
   const comment = await commentRepository.deletePostComment(id);
   // 없는 댓글을 삭제했을 때,
   if (comment.affectedRows !== 1) {
     return res
-      .status(404)
-      .json({ message: `cannot delete comment. comment doesn't exist.` });
+      .status(500)
+      .json({ message: `Internal Server Error : cannot delete comment.` });
   }
-  return res.status(200).json({ message: `comment delete success` });
+  return res
+    .status(204)
+    .json({ message: `No Content : comment delete success` });
 }
 
-// 게시판 댓글 삭제
+// 아파트 정보 게시판 댓글 삭제
 export async function deleteAptComment(req, res) {
   const id = req.params.id;
   // 삭제 요청한 댓글 번호가 숫자가 아니라면,
   if (isNaN(id)) {
     return res
       .status(400)
-      .json({ message: `correct comment number is required` });
+      .json({ message: `Bad Request : correct comment number is required` });
   }
   const checkComment = await commentRepository.getPostCommentById(id);
   // 삭제 요청한 댓글이 없다면,
   if (isEmptyArr(checkComment)) {
-    return res.status(400).json({ message: `comment doesn't exist` });
+    return res
+      .status(404)
+      .json({ message: `Not Found : comment doesn't exist` });
   }
   // 삭제 요청한 댓글의 작성자가 현재 사용자와 일치하지 않는다면,
   if (checkComment[0].user_id !== parseInt(req.index_check)) {
     return res
-      .status(400)
-      .json({ message: `cannot delete other client's comment` });
+      .status(403)
+      .json({ message: `Forbidden : cannot delete other client's comment` });
   }
   const comment = await commentRepository.deleteAptComment(id);
   // 없는 댓글을 삭제했을 때,
   if (comment.affectedRows !== 1) {
     return res
-      .status(404)
-      .json({ message: `cannot delete comment. comment doesn't exist.` });
+      .status(500)
+      .json({ message: `Internal Server Error : cannot delete comment.` });
   }
-  return res.status(200).json({ message: `comment delete success` });
+  return res
+    .status(204)
+    .json({ message: `No Content : comment delete success` });
 }
 
 // 비어있는 배열인지 확인

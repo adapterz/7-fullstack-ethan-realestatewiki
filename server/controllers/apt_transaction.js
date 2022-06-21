@@ -11,7 +11,7 @@ export async function getAptTranactionListByAptNameAndDong(req, res) {
       dong
     );
   if (apt[0] === undefined) {
-    return res.status(404).json({ message: `apt doesn't exist` });
+    return res.status(404).json({ message: `Not Found : apt doesn't exist` });
   }
   return res.status(200).send(apt);
 }
