@@ -68,7 +68,8 @@ export async function makeUser(req, res) {
         .status(409)
         .json({ message: `Conflict : Duplicate phonenumber` });
     }
-    //회원 가입 실패 시
+    // TODO 플러그인 설치
+    //TODO : 회원가입 실패 시,
     const user = await userRepository.makeUser(userData, userImage);
     return res.status(201).json({ message: `Created : signup success` });
   }
@@ -120,6 +121,7 @@ export async function makeUser(req, res) {
   }
 
   //회원 가입 실패 시
+  // TODO :
   const user = await userRepository.makeUser(userData, userImage);
   return res.status(201).json({ message: `Created : signup success` });
 }
