@@ -64,7 +64,12 @@ export async function makeUser(req, res) {
   }
 
   // 이미지가 첨부되었을 때 회원 가입
-  userImage = `${req.file.destination}${req.file.filename}`;
+  console.log(req.fileValidationError);
+  if (req.fileValidationError) {
+    return res.status(400).json({ message: `you can upload only image file` });
+  }
+
+  userImage = `${req.file.destination}${req.file.originalname}`;
   const checkUserId = await userRepository.duplicatescheckUserId(
     userData.user_id
   );
@@ -114,7 +119,8 @@ export async function updateUser(req, res) {
   const id = req.index_check;
   const userData = req.body;
   let userImage = null;
-
+  console.log("시작전");
+  console.log(req.file);
   // 사진 파일이 첨부되어 있지 않은 경우
   if (req.file == undefined) {
     if (req.nickname_check !== userData.nickname) {
@@ -153,6 +159,7 @@ export async function updateUser(req, res) {
     // 기존의 이미지 경로를 가져와서, 유저 이미지 데이터에 넣는다.
     const userDataFromDB = await userRepository.getUserById(id);
     userImage = userDataFromDB[0].image;
+    console.log("이미지 첨부 안되어 있을 때");
     console.log(userImage);
     const user = await userRepository.updateUser(id, userData, userImage);
     if (!user) {
@@ -202,10 +209,12 @@ export async function updateUser(req, res) {
   // 기존에 저장된 이미지 파일의 경로를 priorUserImage에 지정
   const userDataFromDB = await userRepository.getUserById(id);
   const priorUserImage = userDataFromDB[0].image;
+  console.log(`priorUserImage : ${priorUserImage}`);
   // 기존 저장된 이미지 파일 삭제
   deletefileOfInvalidClient(priorUserImage);
   // 새롭게 요청된 이미지 파일 DB에 업데이트 하기
   userImage = `${req.file.destination}${req.file.filename}`;
+  console.log(userImage);
   const user = await userRepository.updateUser(id, userData, userImage);
   if (!user) {
     return res.status(404).json({ message: `update failure` });
