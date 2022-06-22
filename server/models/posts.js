@@ -27,7 +27,7 @@ export function getPostByKeyword(keyword) {
 }
 
 // 키워드가 포함된 게시글 검색
-export function getPostByKeyword2(keyword, start, pageSize) {
+export function getPostByKeywordByPagenation(keyword, start, pageSize) {
   const sql = `SELECT id, title, content, DATE_FORMAT(datetime_updated, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE title LIKE '%${keyword}%' OR content LIKE '%${keyword}%' ORDER BY datetime_updated DESC LIMIT ${start}, ${pageSize} `;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
@@ -41,7 +41,7 @@ export function getPostByKeyword2(keyword, start, pageSize) {
 
 // 닉네임으로 게시글 검색
 export function getPostByUserId(userId) {
-  const sql = `select post.id, post.author_id, post.title, post.content, DATE_FORMAT(post.datetime_created, '%Y-%M-%D %H:%i:%s'), post.views, post.recommended_number, post.use_enabled, post.comments_enabled, user.user_id from post inner join user on post.author_id = user.id where user_id = "${userId}"`;
+  const sql = `select post.id, post.author_id, post.title, post.content, DATE_FORMAT(post.datetime_created, '%Y-%M-%D %H:%i:%s'), post.views, post.recommended_number, post.use_enabled, post.comments_enabled, user.user_id from post inner join user on post.author_id = user.id where user_id LIKE "%${userId}%"`;
 
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
@@ -54,8 +54,8 @@ export function getPostByUserId(userId) {
 }
 
 // 닉네임으로 게시글 검색
-export function getPostByUserId2(userId, start, pageSize) {
-  const sql = `select post.id, post.author_id, post.title, post.content, DATE_FORMAT(post.datetime_updated, '%Y-%M-%D %H:%i:%s'), post.views, post.recommended_number, post.use_enabled, post.comments_enabled, user.user_id from post inner join user on post.author_id = user.id where user_id = "${userId}" ORDER BY post.datetime_updated DESC LIMIT ${start}, ${pageSize} `;
+export function getPostByUserIdByPagenation(userId, start, pageSize) {
+  const sql = `select post.id, post.author_id, post.title, post.content, DATE_FORMAT(post.datetime_updated, '%Y-%M-%D %H:%i:%s'), post.views, post.recommended_number, post.use_enabled, post.comments_enabled, user.user_id from post inner join user on post.author_id = user.id where user_id LIKE "%${userId}%" ORDER BY post.datetime_updated DESC LIMIT ${start}, ${pageSize}`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {

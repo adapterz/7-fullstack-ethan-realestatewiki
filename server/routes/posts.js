@@ -46,7 +46,7 @@ const postContentOption = [
 router.get("/:id", postsController.getPostById);
 
 // 게시글 검색 (by 키워드 or 유저아이디)
-router.get("/", postsController.searchPost2);
+router.get("/", postsController.searchPost);
 
 // 게시글 작성
 router.post("/", isAuth, postContentOption, postsController.makePost);

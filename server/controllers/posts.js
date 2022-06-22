@@ -54,123 +54,85 @@ export async function getPostById(req, res) {
     .json(post);
 }
 
-// 게시글 검색 (by 유저아이디 or 키워드)
-export async function searchPost(req, res) {
-  if (!req.query.userId && !req.query.keyword) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request : Please enter your search term." });
+async function pagenation(page, pageSize, allItemCount) {
+  let startItemNumber = 0;
+  if (page <= 0) {
+    console.log(`요청된 페이지 page : ${page}`);
+    console.log("요청된 page가 음수입니다.");
+    page = 1;
+    startItemNumber = (page - 1) * pageSize;
+    return [page, startItemNumber];
   }
-  if (!req.query.userId) {
-    const keyword = req.query.keyword;
-    const post = await postRepository.getPostByKeyword(keyword);
-    console.log(post.length);
-    if (post[0] === undefined) {
-      return res
-        .status(404)
-        .json({ message: "Not Found : post doesn't exist" });
-    }
-    return res.status(200).json(post);
+  if (page > Math.round(allItemCount / pageSize)) {
+    console.log(`요청된 페이지 page : ${page}`);
+    console.log(
+      `출력 가능한 페이지 page : ${Math.round(allItemCount / pageSize)}`
+    );
+    console.log("요청된 page가 전체 페이지 보다 큽니다.");
+    page = 1;
+    startItemNumber = (page - 1) * pageSize;
+    return [page, startItemNumber];
   }
-  const userId = req.query.userId;
-  console.log(`userid:${userId}`);
-  const post = await postRepository.getPostByUserId(userId);
-  if (post[0] === undefined) {
-    return res.status(404).json({ message: "Not Found : post doesn't exist" });
-  }
-  return res.status(200).json(post);
+  startItemNumber = (page - 1) * pageSize;
+  return [page, startItemNumber];
+
+  // console.log(`postLength : ${post.length}`);
+  // console.log(`keyword : ${keyword}`);
+  // console.log(`page : ${startItemNumber[0]}`);
+  // console.log(`pageSize : ${pageSize}`);
+  // console.log(`startItemNumber : ${startItemNumber[1]}`);
 }
 
 // 게시글 검색 (by 유저아이디 or 키워드)
-export async function searchPost2(req, res) {
+export async function searchPost(req, res) {
   let page = parseInt(req.query.page);
   const pageSize = parseInt(req.query.pageSize);
+  // 검색어 입력이 되지 않았을 때,
   if (!req.query.userId && !req.query.keyword) {
     return res
       .status(400)
       .json({ message: "Bad Request : Please enter your search term." });
   }
+  // 검색어가 두 종류 입력 되었을 때,
+  if (req.query.userId && req.query.keyword) {
+    return res.status(400).json({
+      message: "Bad Request : Please enter only one type of search term.",
+    });
+  }
+  // keyword 검색 (userId 검색어 미입력)
   if (!req.query.userId) {
+    console.log("키워드 검색 시작");
     const keyword = req.query.keyword;
+    // 키워드로 검색했을 때, 데이터가 있는지 확인
     const post = await postRepository.getPostByKeyword(keyword);
+    // 데이터가 없다면, 오류 발생
     if (post[0] === undefined) {
       return res
         .status(404)
         .json({ message: "Not Found : post doesn't exist" });
     }
-    // 쿼리문으로 몇번째 페이지 받을지? 몇개씩 출력할지 받는다.
-
-    // 페이지에 불러올 원소는 0부터 시작
-    let start = 0;
-    // 받은 페이지가 0보다 작다면 페이지는 1로 고정
-    if (page <= 0) {
-      page = 1;
-      // 그게 아니라면, start는 (페이지-1) * 페이지사이즈
-    } else {
-      start = (page - 1) * pageSize;
-    }
-    // 불러올 데이터의 갯수
-    const postCount = post.length;
-
-    //"총 데이터의 갯수 / 페이지의 사이즈" 가 요청한 페이지보다 작다면 페이지는 1로 고정
-    if (page > Math.round(postCount / pageSize)) {
-      page = 1;
-    }
-
-    console.log(`pageSize : ${pageSize}`);
-    console.log(`start : ${start}`);
-    const postByKeyword = await postRepository.getPostByKeyword2(
+    let startItemNumber = await pagenation(page, pageSize, post.length);
+    const postByKeyword = await postRepository.getPostByKeywordByPagenation(
       keyword,
-      start,
+      startItemNumber[1],
       pageSize
     );
     return res.status(200).json(postByKeyword);
   }
-
-  // 페이지에 불러올 원소는 0부터 시작
-  let start = 0;
+  // userId 검색 (keyword 검색어 미입력일 경우)
+  console.log("userId 검색");
   const userId = req.query.userId;
-  console.log(`userid:${userId}`);
-  console.log(`start : ${start}`);
-  console.log(`pageSize : ${pageSize}`);
   const post = await postRepository.getPostByUserId(userId);
-  console.log(post);
   if (post[0] === undefined) {
     return res.status(404).json({ message: "Not Found : post doesn't exist" });
   }
-  // 받은 페이지가 0보다 작다면 페이지는 1로 고정
-  if (page <= 0) {
-    page = 1;
-    // 그게 아니라면, start는 (페이지-1) * 페이지사이즈
-  } else {
-    start = (page - 1) * pageSize;
-  }
-  // 불러올 데이터의 갯수
-  const postCount = post.length;
-
-  //"총 데이터의 갯수 / 페이지의 사이즈" 가 요청한 페이지보다 작다면 페이지는 1로 고정
-  if (page > Math.round(postCount / pageSize)) {
-    page = 1;
-  }
-  console.log(`start : ${start}`);
-  console.log(`pageSize : ${pageSize}`);
-  const postByUserId = await postRepository.getPostByUserId2(
+  let startItemNumber = await pagenation(page, pageSize, post.length);
+  const postByUserId = await postRepository.getPostByUserIdByPagenation(
     userId,
-    start,
+    startItemNumber[1],
     pageSize
   );
   return res.status(200).json(postByUserId);
-}
-
-async function getPostCount(page, pageSize) {
-  try {
-    let start = 0;
-    if (page <= 0) {
-      page = 1;
-    } else {
-      start = (page - 1) * pageSize;
-    }
-  } catch {}
 }
 
 // 게시글 작성

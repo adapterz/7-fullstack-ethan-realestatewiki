@@ -13,14 +13,52 @@ export async function getCommentById(req, res) {
   return res.status(200).json(comment);
 }
 
+async function pagenation(page, pageSize, allItemCount) {
+  let startItemNumber = 0;
+  if (page <= 0) {
+    console.log(`요청된 페이지 page : ${page}`);
+    console.log("요청된 page가 음수입니다.");
+    page = 1;
+    startItemNumber = (page - 1) * pageSize;
+    return [page, startItemNumber];
+  }
+  if (page > Math.round(allItemCount / pageSize)) {
+    console.log(`요청된 페이지 page : ${page}`);
+    console.log(
+      `출력 가능한 페이지 page : ${Math.round(allItemCount / pageSize)}`
+    );
+    console.log("요청된 page가 전체 페이지 보다 큽니다.");
+    page = 1;
+    startItemNumber = (page - 1) * pageSize;
+    return [page, startItemNumber];
+  }
+  startItemNumber = (page - 1) * pageSize;
+  return [page, startItemNumber];
+
+  // console.log(`postLength : ${post.length}`);
+  // console.log(`keyword : ${keyword}`);
+  // console.log(`page : ${startItemNumber[0]}`);
+  // console.log(`pageSize : ${pageSize}`);
+  // console.log(`startItemNumber : ${startItemNumber[1]}`);
+}
+
 // 댓글 검색 (by 유저아이디 or 키워드)
 export async function searchComments(req, res) {
+  let page = parseInt(req.query.page);
+  const pageSize = parseInt(req.query.keyword);
   if (!req.query.userId && !req.query.keyword) {
     return res
       .status(400)
       .json({ message: "Bad Request : Please enter your search term." });
   }
+  // 검색어가 두 종류 입력 되었을 때,
+  if (req.query.userId && req.query.keyword) {
+    return res.status(400).json({
+      message: "Bad Request : Please enter only one type of search term.",
+    });
+  }
   if (!req.query.userId) {
+    console.log("키워드 검색 시작");
     const keyword = req.query.keyword;
     const comment = await commentRepository.getCommentByKeyword(keyword);
     if (comment[0] === undefined) {
@@ -28,8 +66,16 @@ export async function searchComments(req, res) {
         .status(404)
         .json({ message: "Not Found : comment doesn't exist" });
     }
-    return res.status(200).json(comment);
+    let startItemNumber = await pagenation(page, pageSize, comment.length);
+    const commentByKeyword =
+      await commentRepository.getCommentByKeywordByPagenation(
+        keyword,
+        startItemNumber[1],
+        pageSize
+      );
+    return res.status(200).json(commentByKeyword);
   }
+
   const userId = req.query.userId;
   console.log(`userid:${userId}`);
   const comment = await commentRepository.getCommentByUserId(userId);

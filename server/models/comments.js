@@ -27,7 +27,20 @@ export function getAptCommentById(id) {
 
 // 댓글 검색 (by 키워드)
 export function getCommentByKeyword(keyword) {
-  const sql = `SELECT comment.user_id, comment.post_id, comment.apt_id, comment.content, DATE_FORMAT(comment.datetime_created, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment left join user on comment.user_id = user.id WHERE content LIKE '%${keyword}%'`;
+  const sql = `SELECT comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_post left join user on comment_post.user_id = user.id WHERE content LIKE '%${keyword}%'`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 댓글 검색 (by 키워드, 페이지네이션)
+export function getCommentByKeywordByPagenation(keyword, start, pageSize) {
+  const sql = `SELECT comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_post left join user on comment_post.user_id = user.id WHERE content LIKE '%${keyword}%' ORDER BY comment_post.datetime_updated DESC LIMIT ${start}, ${pageSize}`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
