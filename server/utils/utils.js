@@ -16,16 +16,20 @@ export async function pagenation(page, pageSize, allItemCount) {
     startItemNumber = (page - 1) * pageSize;
     return [page, startItemNumber];
   }
-  if (page > Math.round(allItemCount / pageSize)) {
+  if (page > Math.ceil(allItemCount / pageSize)) {
     console.log(`요청된 페이지 page : ${page}`);
     console.log(
-      `출력 가능한 페이지 page : ${Math.round(allItemCount / pageSize)}`
+      `출력 가능한 페이지 page : ${Math.ceil(allItemCount / pageSize)}`
     );
     console.log("요청된 page가 전체 페이지 보다 큽니다.");
     page = 1;
     startItemNumber = (page - 1) * pageSize;
     return [page, startItemNumber];
   }
+  console.log(`요청된 페이지 page : ${page}`);
+  console.log(
+    `출력 가능한 페이지 page : ${Math.ceil(allItemCount / pageSize)}`
+  );
   startItemNumber = (page - 1) * pageSize;
   return [page, startItemNumber];
 

@@ -25,8 +25,8 @@ export function getAptCommentById(id) {
   });
 }
 
-// 댓글 검색 (by 키워드)
-export function getCommentByKeyword(keyword) {
+// 게시글에 달린 댓글 검색 (by 키워드)
+export function getPostCommentsByKeyword(keyword) {
   const sql = `SELECT comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_post left join user on comment_post.user_id = user.id WHERE content LIKE '%${keyword}%'`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
@@ -38,8 +38,8 @@ export function getCommentByKeyword(keyword) {
   });
 }
 
-// 댓글 검색 (by 키워드, 페이지네이션)
-export function getCommentByKeywordByPagenation(keyword, start, pageSize) {
+// 게시글에 달린 댓글 검색 (by 키워드, 페이지네이션)
+export function getPostCommentsByKeywordByPagenation(keyword, start, pageSize) {
   const sql = `SELECT comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_post left join user on comment_post.user_id = user.id WHERE content LIKE '%${keyword}%' ORDER BY comment_post.datetime_updated DESC LIMIT ${start}, ${pageSize}`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
@@ -52,8 +52,21 @@ export function getCommentByKeywordByPagenation(keyword, start, pageSize) {
 }
 
 // 댓글 검색 (by 유저아이디)
-export function getCommentByUserId(userId) {
-  const sql = `select comment.id, comment.user_id, comment.post_id, comment.content, DATE_FORMAT(comment.datetime_created, '%Y-%M-%D %H:%i:%s'), comment.apt_id, user.user_id from comment inner join user on comment.user_id = user.id where user.user_id = "${userId}"`;
+export function getPostCommentByUserId(userId) {
+  const sql = `select comment_post.id, comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id from comment_post inner join user on comment_post.user_id = user.id where user.user_id LIKE "%${userId}%" ORDER BY comment_post.datetime_updated`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 댓글 검색 (by 유저아이디)
+export function getPostCommentByUserIdByPagenation(userId, start, pageSize) {
+  const sql = `select comment_post.id, comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id from comment_post inner join user on comment_post.user_id = user.id where user.user_id LIKE "%${userId}%" ORDER BY comment_post.datetime_updated LIMIT ${start}, ${pageSize}`;
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {

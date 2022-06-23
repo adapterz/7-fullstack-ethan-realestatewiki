@@ -99,6 +99,7 @@ export async function searchPost(req, res) {
     return res.status(404).json({ message: "Not Found : post doesn't exist" });
   }
   let startItemNumber = await pagenation(page, pageSize, post.length);
+  console.log(startItemNumber);
   const postByUserId = await postRepository.getPostByUserIdByPagenation(
     userId,
     startItemNumber[1],
