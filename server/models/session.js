@@ -1,4 +1,4 @@
-import db from "../db.js";
+import db from "../middlewares/db.js";
 
 // 유저 조회 (by 유저 인덱스 번호)
 export function getDataBySessionId(sessionId) {

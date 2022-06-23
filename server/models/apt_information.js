@@ -1,4 +1,4 @@
-import db from "../db.js";
+import db from "../middlewares/db.js";
 
 // 아파트 검색 (by 아파트 이름)
 export function getAptInfoByAptName(aptName) {

@@ -47,4 +47,16 @@ export function imageExtensionErrorHandler(req, res, next) {
   next();
 }
 
+// multer로 인하여 미리 저장되었지만, 다른 유저 데이터의 유효성 검사 미통과로 인해, 저장된 파일을 삭제하는 메서드
+export function deletefileOfInvalidClient(userImagePath) {
+  if (fs.existsSync(userImagePath)) {
+    try {
+      fs.unlinkSync(userImagePath);
+      console.log("요청 실패 : image deleted");
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}
+
 export default upload;

@@ -1,4 +1,4 @@
-import db from "../db.js";
+import db from "../middlewares/db.js";
 import * as aptTransactionRepository from "../models/apt_transaction.js";
 
 // 아파트 거래 내역 조회(by 아파트 이름, 법정동)

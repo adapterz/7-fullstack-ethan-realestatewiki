@@ -1,4 +1,4 @@
-import db from "../db.js";
+import db from "../middlewares/db.js";
 
 // 댓글 검색 (by 댓글 번호)
 export function getPostCommentById(id) {

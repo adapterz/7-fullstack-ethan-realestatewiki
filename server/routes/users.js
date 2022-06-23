@@ -1,10 +1,10 @@
 import express from "express";
 import * as usersController from "../controllers/users.js";
 import { body } from "express-validator";
-import { validate } from "../validate.js";
-import { isAuth } from "../auth.js";
-import upload from "../multer.js";
-import { imageExtensionErrorHandler } from "../multer.js";
+import { validate } from "../middlewares/validate.js";
+import { isAuth } from "../middlewares/auth.js";
+import upload from "../middlewares/multer.js";
+import { imageExtensionErrorHandler } from "../middlewares/multer.js";
 
 const router = express.Router();
 
@@ -97,6 +97,11 @@ const userInputOptionForUpdate = [
   body("image").trim(),
   validate,
 ];
+
+// 로그인
+router.post("/signin", usersController.signin);
+// 로그 아웃
+router.get("/logout", usersController.logout);
 
 // 유저 조회 (by 유저 인덱스 번호)
 router.get("/", isAuth, usersController.getUserById);

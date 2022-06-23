@@ -1,6 +1,7 @@
 import * as aptInfoRepository from "../models/apt_information.js";
 
 // 아파트 검색 (by 아파트 이름)
+
 export async function getAptInfoByAptName(req, res) {
   let page = parseInt(req.query.page);
   const pageSize = parseInt(req.query.pageSize);

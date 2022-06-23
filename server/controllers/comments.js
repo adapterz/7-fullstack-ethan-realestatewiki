@@ -1,4 +1,5 @@
 import * as commentRepository from "../models/comments.js";
+import { isEmptyArr, pagenation } from "../utils/utils.js";
 
 // 댓글 검색 (by 댓글 번호)
 export async function getCommentById(req, res) {
@@ -11,35 +12,6 @@ export async function getCommentById(req, res) {
       .json({ message: `Not Found : comment doesn't exist` });
   }
   return res.status(200).json(comment);
-}
-
-async function pagenation(page, pageSize, allItemCount) {
-  let startItemNumber = 0;
-  if (page <= 0) {
-    console.log(`요청된 페이지 page : ${page}`);
-    console.log("요청된 page가 음수입니다.");
-    page = 1;
-    startItemNumber = (page - 1) * pageSize;
-    return [page, startItemNumber];
-  }
-  if (page > Math.round(allItemCount / pageSize)) {
-    console.log(`요청된 페이지 page : ${page}`);
-    console.log(
-      `출력 가능한 페이지 page : ${Math.round(allItemCount / pageSize)}`
-    );
-    console.log("요청된 page가 전체 페이지 보다 큽니다.");
-    page = 1;
-    startItemNumber = (page - 1) * pageSize;
-    return [page, startItemNumber];
-  }
-  startItemNumber = (page - 1) * pageSize;
-  return [page, startItemNumber];
-
-  // console.log(`postLength : ${post.length}`);
-  // console.log(`keyword : ${keyword}`);
-  // console.log(`page : ${startItemNumber[0]}`);
-  // console.log(`pageSize : ${pageSize}`);
-  // console.log(`startItemNumber : ${startItemNumber[1]}`);
 }
 
 // 댓글 검색 (by 유저아이디 or 키워드)
@@ -305,12 +277,4 @@ export async function deleteAptComment(req, res) {
   return res
     .status(204)
     .json({ message: `No Content : comment delete success` });
-}
-
-// 비어있는 배열인지 확인
-function isEmptyArr(arr) {
-  if (Array.isArray(arr) && arr.length === 0) {
-    return true;
-  }
-  return false;
 }

@@ -1,4 +1,4 @@
-import * as authenticationRepository from "../server/models/authentication.js";
+import * as sessionRepository from "../models/session.js";
 
 // 인증 여부 확인
 export const isAuth = async (req, res, next) => {
@@ -10,9 +10,7 @@ export const isAuth = async (req, res, next) => {
       .json({ message: `Unauthorized : login is required.` });
   }
   // sessionID가 데이터베이스에 없을 때, 예외 처리
-  const userSession = await authenticationRepository.getDataBySessionId(
-    req.sessionID
-  );
+  const userSession = await sessionRepository.getDataBySessionId(req.sessionID);
   if (isEmptyArr(userSession)) {
     return res
       .status(401)

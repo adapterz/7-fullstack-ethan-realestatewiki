@@ -1,4 +1,4 @@
-import db from "../db.js";
+import db from "../middlewares/db.js";
 
 // 좋아요 하기
 export function likePost(post_id, user_id) {

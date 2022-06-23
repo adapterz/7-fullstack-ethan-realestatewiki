@@ -1,8 +1,8 @@
 import express from "express";
 import * as postsController from "../controllers/posts.js";
 import { body } from "express-validator";
-import { validate } from "../validate.js";
-import { isAuth } from "../auth.js";
+import { validate } from "../middlewares/validate.js";
+import { isAuth } from "../middlewares/auth.js";
 
 const router = express.Router();
 

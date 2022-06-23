@@ -1,6 +1,43 @@
 import * as userRepository from "../models/users.js";
 import bcrypt from "bcrypt";
-import fs from "fs";
+import { deletefileOfInvalidClient } from "../middlewares/multer.js";
+import { isEmptyArr } from "../utils/utils.js";
+
+// 로그인
+export async function signin(req, res) {
+  const { user_id, user_pw } = req.body;
+  // user_id로 해당 회원이 존재하는지 확인
+  const user = await userRepository.findByUserid(user_id);
+  if (!user) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Invalid user or password1" });
+  }
+  // 사용자가 입력한 패스워드, db에 저장된 암호화된 패스워드를 비교
+  const checkPw = await bcrypt.compare(user_pw, user[0].user_pw);
+  if (!checkPw) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Invalid user or password2" });
+  }
+  // 암호일치 시 session 저장
+  req.session.index = user[0].id;
+  req.session.user_id = user[0].user_id;
+  req.session.nickname = user[0].nickname;
+  req.session.email = user[0].email;
+  req.session.phone_number = user[0].phone_number;
+  await req.session.save();
+
+  return res.status(200).json(`OK : ${req.session.nickname} 환영합니다.`);
+}
+
+//로그아웃
+export function logout(req, res) {
+  req.session.destroy();
+  if (!req.session) {
+    res.status(200).json(`OK : 로그아웃 되었습니다.`);
+  }
+}
 
 // 나의 정보 조회 (로그인 후 나의 정보 조회)
 export async function getUserById(req, res) {
@@ -35,7 +72,6 @@ export async function makeUser(req, res) {
     );
     // UserId가 중복될 때,
     if (!isEmptyArr(checkUserId)) {
-      // TODO: 상태코드 업데이트 필요.
       return res.status(409).json({ message: `Conflict : Duplicate user ID` });
     }
 
@@ -44,7 +80,6 @@ export async function makeUser(req, res) {
       userData.nickname
     );
     if (!isEmptyArr(checkNickname)) {
-      // TODO: 상태코드 업데이트 필요.
       return res.status(409).json({ message: `Conflict : Duplicate nickname` });
     }
 
@@ -54,7 +89,6 @@ export async function makeUser(req, res) {
       userData.email
     );
     if (!isEmptyArr(checkEmail)) {
-      // TODO: 상태코드 업데이트 필요.
       return res.status(409).json({ message: `Conflict : Duplicate email` });
     }
 
@@ -63,13 +97,10 @@ export async function makeUser(req, res) {
       userData.phone_number
     );
     if (!isEmptyArr(checkPhoneNumber)) {
-      // TODO: 상태코드 업데이트 필요.
       return res
         .status(409)
         .json({ message: `Conflict : Duplicate phonenumber` });
     }
-    // TODO 플러그인 설치
-    //TODO : 회원가입 실패 시,
     const user = await userRepository.makeUser(userData, userImage);
     return res.status(201).json({ message: `Created : signup success` });
   }
@@ -119,9 +150,6 @@ export async function makeUser(req, res) {
       .status(409)
       .json({ message: `Conflict : Duplicate phonenumber` });
   }
-
-  //회원 가입 실패 시
-  // TODO :
   const user = await userRepository.makeUser(userData, userImage);
   return res.status(201).json({ message: `Created : signup success` });
 }
@@ -277,22 +305,3 @@ export async function deleteUser(req, res) {
 }
 
 // util.js? 디렉토리 구조, 함수들만 모아놓는 폴더.
-// 비어있는 배열인지 확인
-function isEmptyArr(arr) {
-  if (Array.isArray(arr) && arr.length === 0) {
-    return true;
-  }
-  return false;
-}
-
-// multer로 인하여 미리 저장되었지만, 다른 유저 데이터의 유효성 검사 미통과로 인해, 저장된 파일을 삭제하는 메서드
-function deletefileOfInvalidClient(userImagePath) {
-  if (fs.existsSync(userImagePath)) {
-    try {
-      fs.unlinkSync(userImagePath);
-      console.log("요청 실패 : image deleted");
-    } catch (error) {
-      console.log(error);
-    }
-  }
-}

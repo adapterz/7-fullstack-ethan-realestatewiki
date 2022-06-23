@@ -1,5 +1,6 @@
 import * as postRepository from "../models/posts.js";
 import * as likeRepository from "../models/likes.js";
+import { isEmptyArr, pagenation } from "../utils/utils.js";
 
 // 게시글 검색 (by 게시글 번호)
 export async function getPostById(req, res) {
@@ -52,35 +53,6 @@ export async function getPostById(req, res) {
     .status(200)
     .cookie("viewPost", `${priorViewPost},${id}`, { maxAge: 15 * 60 * 1000 })
     .json(post);
-}
-
-async function pagenation(page, pageSize, allItemCount) {
-  let startItemNumber = 0;
-  if (page <= 0) {
-    console.log(`요청된 페이지 page : ${page}`);
-    console.log("요청된 page가 음수입니다.");
-    page = 1;
-    startItemNumber = (page - 1) * pageSize;
-    return [page, startItemNumber];
-  }
-  if (page > Math.round(allItemCount / pageSize)) {
-    console.log(`요청된 페이지 page : ${page}`);
-    console.log(
-      `출력 가능한 페이지 page : ${Math.round(allItemCount / pageSize)}`
-    );
-    console.log("요청된 page가 전체 페이지 보다 큽니다.");
-    page = 1;
-    startItemNumber = (page - 1) * pageSize;
-    return [page, startItemNumber];
-  }
-  startItemNumber = (page - 1) * pageSize;
-  return [page, startItemNumber];
-
-  // console.log(`postLength : ${post.length}`);
-  // console.log(`keyword : ${keyword}`);
-  // console.log(`page : ${startItemNumber[0]}`);
-  // console.log(`pageSize : ${pageSize}`);
-  // console.log(`startItemNumber : ${startItemNumber[1]}`);
 }
 
 // 게시글 검색 (by 유저아이디 or 키워드)
@@ -180,12 +152,15 @@ export async function updatePost(req, res) {
   // body로 요청된 데이터를 postData 변수에 대입
   const postData = req.body;
   const post = await postRepository.updatePost(id, postData);
+  console.log(post);
   if (post.insertId === undefined) {
     return res
       .status(500)
       .json({ message: `Internal Server Error : creating post failure` });
   }
   if (post.changedRows === 0) {
+    console.log("변경 사항이 없습니다.");
+    // TODO : 204 상태 코드 작성 시, json 내용은 전달되지 않는다.
     return res.status(204).json({
       message: `No Content : there is no change have been made in your update request`,
     });
@@ -261,16 +236,3 @@ export async function likePostById(req, res) {
   await likeRepository.likePost(postId, userId);
   return res.status(200).json({ message: `OK : like post` });
 }
-
-// 비어있는 배열인지 확인
-function isEmptyArr(arr) {
-  if (Array.isArray(arr) && arr.length === 0) {
-    return true;
-  }
-  return false;
-}
-
-// // 현재 시간 체크
-// let today = new Date();
-// let UTCstring = today.toUTCString(); // Wed, 14 Jun 2017 07:00:00 GMT
-// console.log(UTCstring);

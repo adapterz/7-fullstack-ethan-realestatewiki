@@ -1,4 +1,4 @@
-import db from "../db.js";
+import db from "../middlewares/db.js";
 
 // 게시글 검색 (by 게시글 번호)
 export function getPostById(id) {
@@ -150,6 +150,19 @@ export function dislikePost(postId) {
 // 게시글 조회 시 조회수 증가
 export function views(postId) {
   const sql = `UPDATE post SET views = post.views + 1 where id = '${postId}'`;
+  console.log(sql);
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+export function checkPostForUpdateAndDelete(id, userIndex) {
+  const sql = `SELECT id, author_id, title, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE id = "${id}" AND author_id = ${userIndex}`;
   console.log(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {

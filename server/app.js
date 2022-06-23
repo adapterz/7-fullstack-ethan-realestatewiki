@@ -10,9 +10,8 @@ import postsRouter from "./routes/posts.js";
 import commentsRouter from "./routes/comments.js";
 import aptTransactionRouter from "./routes/apt_transaction.js";
 import aptInformationRouter from "./routes/apt_information.js";
-import authenticationRounter from "./routes/authentication.js";
-import db from "../server/db.js";
-import { config } from "../server/config.js";
+import db from "../server/middlewares/db.js";
+import { config } from "../server/configs/config.js";
 
 const app = express();
 app.use(helmet());
@@ -53,7 +52,6 @@ app.use("/posts", postsRouter);
 app.use("/comments", commentsRouter);
 app.use("/aptinfos", aptInformationRouter);
 app.use("/aptTransaction", aptTransactionRouter);
-app.use("/authentication", authenticationRounter);
 
 // 요청에 대해서 앞부분에서 처리 못했을 때.
 app.use((req, res, next) => {
