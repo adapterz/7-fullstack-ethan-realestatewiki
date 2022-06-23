@@ -31,8 +31,10 @@ const commentContentOption = [
 
 // 댓글 상세 조회 (by 댓글 인덱스 번호)
 router.get("/detail/:id", commentsController.getCommentById);
-// 댓글 검색 (by 키워드 or 유저아이디)
-router.get("/", commentsController.searchPostComments);
+// 게시판 댓글 검색 (by 키워드 or 유저아이디)
+router.get("/post-comments", commentsController.searchPostComments);
+// 아파트 정보 댓글 검색 (by 키워드 or 유저아이디)
+router.get("/apt-comments", commentsController.searchAptComments);
 // 댓글 검색 (by 관련 게시글 인덱스 번호)
 router.get("/getbypostid/:id", commentsController.getCommentsByPostId);
 // 댓글 검색 (by 관련 아파트 인덱스 번호)

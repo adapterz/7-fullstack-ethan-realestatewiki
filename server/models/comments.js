@@ -77,6 +77,58 @@ export function getPostCommentByUserIdByPagenation(userId, start, pageSize) {
   });
 }
 
+// 게시글에 달린 댓글 검색 (by 키워드)
+export function getAptCommentsByKeyword(keyword) {
+  const sql = `SELECT comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id WHERE content LIKE '%${keyword}%'`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 게시글에 달린 댓글 검색 (by 키워드, 페이지네이션)
+export function getAptCommentsByKeywordByPagenation(keyword, start, pageSize) {
+  const sql = `SELECT comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id WHERE content LIKE '%${keyword}%' ORDER BY comment_apt.datetime_updated DESC LIMIT ${start}, ${pageSize}`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 댓글 검색 (by 유저아이디)
+export function getAptCommentByUserId(userId) {
+  const sql = `select comment_apt.id, comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id from comment_apt inner join user on comment_apt.user_id = user.id where user.user_id LIKE "%${userId}%" ORDER BY comment_apt.datetime_updated`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
+// 댓글 검색 (by 유저아이디)
+export function getAptCommentByUserIdByPagenation(userId, start, pageSize) {
+  const sql = `select comment_apt.id, comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id from comment_apt inner join user on comment_apt.user_id = user.id where user.user_id LIKE "%${userId}%" ORDER BY comment_apt.datetime_updated LIMIT ${start}, ${pageSize}`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+      resolve(result);
+    });
+  });
+}
+
 // 댓글 검색 (by 관련 게시글 인덱스 번호)
 export function getCommentByPostId(postId) {
   const sql = `SELECT comment.id, comment.post_id, comment.user_id, comment.content, DATE_FORMAT(comment.datetime_created, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment left join user on comment.user_id = user.id WHERE post_id = "${postId}"`;
