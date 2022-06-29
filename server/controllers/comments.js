@@ -1,5 +1,6 @@
 import * as commentRepository from "../models/comments.js";
 import { isEmptyArr, pagenation } from "../utils/utils.js";
+import PAGE_SIZE from "../utils/const.js";
 
 // 댓글 검색 (by 댓글 번호)
 export async function getCommentById(req, res) {
@@ -18,7 +19,6 @@ export async function getCommentById(req, res) {
 // 게시글에 달린 댓글 검색 (by 유저아이디 or 키워드)
 export async function searchPostComments(req, res) {
   let page = parseInt(req.query.page);
-  const pageSize = parseInt(req.query.pageSize);
   // 검색어 입력이 되지 않았을 때,
   if (!req.query.userId && !req.query.keyword) {
     return res
@@ -42,13 +42,13 @@ export async function searchPostComments(req, res) {
         .status(404)
         .json({ message: "Not Found : comment doesn't exist" });
     }
-    let startItemNumber = await pagenation(page, pageSize, comment.length);
+    let startItemNumber = await pagenation(page, PAGE_SIZE, comment.length);
     console.log(startItemNumber);
     const commentByKeyword =
       await commentRepository.getPostCommentsByKeywordByPagenation(
         keyword,
         startItemNumber[1],
-        pageSize
+        PAGE_SIZE
       );
     return res.status(200).json(commentByKeyword);
   }
@@ -62,12 +62,12 @@ export async function searchPostComments(req, res) {
       .status(404)
       .json({ message: "Not Found : comment doesn't exist" });
   }
-  let startItemNumber = await pagenation(page, pageSize, comment.length);
+  let startItemNumber = await pagenation(page, PAGE_SIZE, comment.length);
   const commentByUserId =
     await commentRepository.getPostCommentByUserIdByPagenation(
       userId,
       startItemNumber[1],
-      pageSize
+      PAGE_SIZE
     );
   return res.status(200).json(commentByUserId);
 }
@@ -75,7 +75,11 @@ export async function searchPostComments(req, res) {
 // 아파트 정보에 달린 댓글 검색 (by 유저아이디 or 키워드)
 export async function searchAptComments(req, res) {
   let page = parseInt(req.query.page);
-  const pageSize = parseInt(req.query.pageSize);
+  if (!page) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter page number." });
+  }
   // 검색어 입력이 되지 않았을 때,
   if (!req.query.userId && !req.query.keyword) {
     return res
@@ -99,13 +103,13 @@ export async function searchAptComments(req, res) {
         .status(404)
         .json({ message: "Not Found : comment doesn't exist" });
     }
-    let startItemNumber = await pagenation(page, pageSize, comment.length);
+    let startItemNumber = await pagenation(page, PAGE_SIZE, comment.length);
     console.log(startItemNumber);
     const commentByKeyword =
       await commentRepository.getAptCommentsByKeywordByPagenation(
         keyword,
         startItemNumber[1],
-        pageSize
+        PAGE_SIZE
       );
     return res.status(200).json(commentByKeyword);
   }
@@ -210,7 +214,6 @@ export async function updatePostComment(req, res) {
       .status(400)
       .json({ message: `Bad Request : correct post number is required` });
   }
-
   const checkComment = await commentRepository.getPostCommentById(id);
   console.log(checkComment);
   // 요청한 댓글 번호에 해당하는 댓글이 없다면,

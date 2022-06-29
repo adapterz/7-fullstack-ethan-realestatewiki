@@ -11,7 +11,7 @@ import commentsRouter from "./routes/comments.js";
 import aptTransactionRouter from "./routes/apt_transaction.js";
 import aptInformationRouter from "./routes/apt_information.js";
 import db from "../server/middlewares/db.js";
-import { config } from "../server/configs/config.js";
+import { config } from "../server/middlewares/config.js";
 
 const app = express();
 app.use(helmet());

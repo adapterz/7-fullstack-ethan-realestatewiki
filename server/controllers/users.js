@@ -11,14 +11,14 @@ export async function signin(req, res) {
   if (!user) {
     return res
       .status(400)
-      .json({ message: "Bad Request : Invalid user or password1" });
+      .json({ message: "Bad Request : Invalid user or password" });
   }
   // 사용자가 입력한 패스워드, db에 저장된 암호화된 패스워드를 비교
   const checkPw = await bcrypt.compare(user_pw, user[0].user_pw);
   if (!checkPw) {
     return res
       .status(400)
-      .json({ message: "Bad Request : Invalid user or password2" });
+      .json({ message: "Bad Request : Invalid user or password" });
   }
   // 암호일치 시 session 저장
   req.session.index = user[0].id;
@@ -43,6 +43,7 @@ export function logout(req, res) {
 export async function getUserById(req, res) {
   // id 변수에 로그인 시 저장 해놓은 유저 인덱스 번호 지정
   // req.index_check : auth.js에서 생성된 값
+  // TODO : req 라고 되어 있어서 헷갈리는 부분이 있다. (서버에서 가져온 것인지 모른다.)
   const id = req.index_check;
   const user = await userRepository.getUserById(id);
   // user가 존재하지 않을 때
@@ -67,6 +68,8 @@ export async function makeUser(req, res) {
   userData.user_pw = await bcrypt.hash(userData.user_pw, saltRound);
   // 이미지가 첨부되지 않았을 때 회원 가입 방법
   if (req.file == undefined) {
+    //TODO 추후 메서드명 직관적으로 변경 ex)read, write 이용
+    //TODO 프리티어 규칙 변경
     const checkUserId = await userRepository.duplicatescheckUserId(
       userData.user_id
     );
@@ -101,6 +104,7 @@ export async function makeUser(req, res) {
         .status(409)
         .json({ message: `Conflict : Duplicate phonenumber` });
     }
+    //TODO null인데 왜 넘겨?
     const user = await userRepository.makeUser(userData, userImage);
     return res.status(201).json({ message: `Created : signup success` });
   }
@@ -108,6 +112,8 @@ export async function makeUser(req, res) {
   // 이미지가 첨부되었을 때 회원 가입
   // 첨부된 이미지의 형식이 잘못되었을 때,
   // multer라이브러리를 사용한 이미지 업로드 처리 중 발생한 이미지 형식 오류
+  //TODO : 같이 이미지 넘기면?
+  //TODO : 이미지 있든 없든, 한번에 회원 가입 로직을 쓰는 방법을 적용 (조건을 걸어서)
   if (req.fileValidationError) {
     return res
       .status(400)
@@ -182,7 +188,7 @@ export async function updateUser(req, res) {
       );
       // 중복되는 이메일이 있다면, 오류 발생
       if (!isEmptyArr(checkEmail)) {
-        return res.status(409).json({ message: `Conflict : Duplicate email1` });
+        return res.status(409).json({ message: `Conflict : Duplicate email` });
       }
     }
     // 기존 사용하던 핸드폰번호과 현재 수정 요청한 핸드폰번호이 다를 경우
@@ -195,7 +201,7 @@ export async function updateUser(req, res) {
       if (!isEmptyArr(checkPhoneNumber)) {
         return res
           .status(409)
-          .json({ message: `Conflict : Duplicate phonenumber1` });
+          .json({ message: `Conflict : Duplicate phonenumber` });
       }
     }
 
@@ -211,6 +217,7 @@ export async function updateUser(req, res) {
     req.session.phone_number = userData.phone_number;
     await req.session.save();
 
+    // TODO : 업데이트 인데 상태코드 201??
     return res.status(201).json({ message: `Created : update success` });
   }
 
@@ -285,6 +292,7 @@ export async function updateUser(req, res) {
 export async function deleteUser(req, res) {
   // session에 들어가 있는 유저 인덱스를 id변수에 넣는다.
   // TODO : req.index_Check --> req.index_islogined
+  // TODO : 403 추가
   const id = req.index_check;
   // id 파라메터가 숫자로 입력되지 않았을 때,
   // 음수일 수도 있으므로 그 부분 추가

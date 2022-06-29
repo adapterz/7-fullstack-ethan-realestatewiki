@@ -1,13 +1,17 @@
 import * as aptInfoRepository from "../models/apt_information.js";
-
+import PAGE_SIZE from "../utils/const.js";
 // 아파트 검색 (by 아파트 이름)
 
 export async function getAptInfoByAptName(req, res) {
   let page = parseInt(req.query.page);
-  const pageSize = parseInt(req.query.pageSize);
+  if (!page) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter page number." });
+  }
   const aptName = req.query.aptName;
   // 페이지 미입력시 에러
-  if (!page || !pageSize || isNaN(page) || isNaN(pageSize)) {
+  if (!page || !PAGE_SIZE || isNaN(page) || isNaN(PAGE_SIZE)) {
     return res.status(400).json({
       message:
         "Bad Request : Please enter correct page or pageSize(page and pageSize is number).",
@@ -25,13 +29,13 @@ export async function getAptInfoByAptName(req, res) {
     return res.status(404).json({ message: `Not Found : apt doesn't exist` });
   }
   console.log(`총 데이터 갯수 : ${apt.length}`);
-  console.log(`총 페이지 갯수 : ${Math.round(apt.length / pageSize)}`);
-  let startItemNumber = await pagenation(page, pageSize, apt.length);
+  console.log(`총 페이지 갯수 : ${Math.round(apt.length / PAGE_SIZE)}`);
+  let startItemNumber = await pagenation(page, PAGE_SIZE, apt.length);
   const aptInfoByKeyword =
     await aptInfoRepository.getAptInfoByAptNameByPagenation(
       aptName,
       startItemNumber[1],
-      pageSize
+      PAGE_SIZE
     );
   return res.status(200).send(aptInfoByKeyword);
 }

@@ -1,6 +1,7 @@
 import * as postRepository from "../models/posts.js";
 import * as likeRepository from "../models/likes.js";
 import { isEmptyArr, pagenation } from "../utils/utils.js";
+import PAGE_SIZE from "../utils/const.js";
 
 // 게시글 검색 (by 게시글 번호)
 export async function getPostById(req, res) {
@@ -37,17 +38,23 @@ export async function getPostById(req, res) {
   // 조회했던 게시글 정보의 배열
   const pageViewArray = req.cookies.viewPost.split(",");
 
-  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서, 현재 페이지 인덱스가 포함되어 있으면 조회수를 올리지 않는다., 쿠키에 현재 페이지 미포함.
+  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서,
+  // 현재 페이지 인덱스가 포함되어 있으면 조회수를 올리지 않는다., 쿠키에 현재 페이지 인덱스 미포함.
+  // TODO 코드 이해 어려움. 기능 자체에 대한 설명
+
+  // 조회된 게시글이 기존에 봤었던 게시글인지 확인
   if (
-    pageViewArray.find((view) => parseInt(view) === parseInt(id)) ==
-    parseInt(id)
+    pageViewArray.find(
+      (viewedPostIndex) => parseInt(viewedPostIndex) === parseInt(id)
+    ) == parseInt(id)
   ) {
     return res
       .status(200)
       .cookie("viewPost", `${priorViewPost}`, { maxAge: 15 * 60 * 1000 })
       .json(post);
   }
-  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서, 현재 페이지 인덱스가 포함되어 없으면 조회수를 올리고, 쿠키에 현재 페이지 포함.
+  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서,
+  // 현재 페이지 인덱스가 포함되어 없으면 조회수를 올리고, 쿠키에 현재 페이지 인덱스 포함.
   await postRepository.views(id);
   return res
     .status(200)
@@ -58,7 +65,11 @@ export async function getPostById(req, res) {
 // 게시글 검색 (by 유저아이디 or 키워드)
 export async function searchPost(req, res) {
   let page = parseInt(req.query.page);
-  const pageSize = parseInt(req.query.pageSize);
+  if (!page) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter page number." });
+  }
   // 검색어 입력이 되지 않았을 때,
   if (!req.query.userId && !req.query.keyword) {
     return res
@@ -83,11 +94,11 @@ export async function searchPost(req, res) {
         .status(404)
         .json({ message: "Not Found : post doesn't exist" });
     }
-    let startItemNumber = await pagenation(page, pageSize, post.length);
+    let startItemNumber = await pagenation(page, PAGE_SIZE, post.length);
     const postByKeyword = await postRepository.getPostByKeywordByPagenation(
       keyword,
       startItemNumber[1],
-      pageSize
+      PAGE_SIZE
     );
     return res.status(200).json(postByKeyword);
   }
@@ -98,12 +109,12 @@ export async function searchPost(req, res) {
   if (post[0] === undefined) {
     return res.status(404).json({ message: "Not Found : post doesn't exist" });
   }
-  let startItemNumber = await pagenation(page, pageSize, post.length);
+  let startItemNumber = await pagenation(page, PAGE_SIZE, post.length);
   console.log(startItemNumber);
   const postByUserId = await postRepository.getPostByUserIdByPagenation(
     userId,
     startItemNumber[1],
-    pageSize
+    PAGE_SIZE
   );
   return res.status(200).json(postByUserId);
 }
@@ -161,7 +172,7 @@ export async function updatePost(req, res) {
   }
   if (post.changedRows === 0) {
     console.log("변경 사항이 없습니다.");
-    // TODO : 204 상태 코드 작성 시, json 내용은 전달되지 않는다.
+    // TODO : 204 상태 코드 작성 시, json 내용은 전달되지 않는다. 완료가 되었을 때, 줄 데이터가 없을떄?
     return res.status(204).json({
       message: `No Content : there is no change have been made in your update request`,
     });
