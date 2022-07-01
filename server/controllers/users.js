@@ -130,7 +130,7 @@ export async function makeUser(req, res) {
       );
       if (!isEmptyArr(checkPhoneNumber)) {
         const error = new Error("`Conflict : Duplicate phonenumber");
-        error.name = "duplicatePhonenumberError";
+        error.name = "duplicatedPhonenumberError";
         throw error;
       }
       //TODO null인데 왜 넘겨?

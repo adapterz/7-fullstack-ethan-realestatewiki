@@ -1,16 +1,20 @@
 import { getSql } from "../middlewares/console.js";
-import db from "../middlewares/db.js";
+import pool from "../middlewares/pool.js";
 
 // 좋아요 하기
 export function likePost(post_id, user_id) {
   const sql = `INSERT INTO likes(user_id, post_id) VALUES (${user_id}, ${post_id})`;
   getSql(sql);
   return new Promise((resolve, reject) => {
-    db.query(sql, function (error, result) {
-      if (error) {
-        return reject(error);
-      }
-      return resolve(result);
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
     });
   });
 }
@@ -20,11 +24,15 @@ export function dislikePost(post_id, user_id) {
   const sql = `DELETE FROM likes WHERE post_id = "${post_id}" AND user_id = "${user_id}"`;
   getSql(sql);
   return new Promise((resolve, reject) => {
-    db.query(sql, function (error, result) {
-      if (error) {
-        return reject(error);
-      }
-      return resolve(result);
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
     });
   });
 }
@@ -34,11 +42,15 @@ export function checkLikeStatusInLikes(post_id, user_id) {
   const sql = `SELECT id, user_id, post_id, datetime_updated  FROM likes WHERE post_id = "${post_id}" AND user_id = "${user_id}"`;
   getSql(sql);
   return new Promise((resolve, reject) => {
-    db.query(sql, function (error, result) {
-      if (error) {
-        return reject(error);
-      }
-      resolve(result);
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
     });
   });
 }
