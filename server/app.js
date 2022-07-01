@@ -2,6 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import expressMysqlSession from "express-mysql-session";
+import pool from "./middlewares/pool.js";
 import helmet from "helmet";
 import usersRouter from "./routes/users.js";
 import postsRouter from "./routes/posts.js";
@@ -9,7 +10,6 @@ import commentsRouter from "./routes/comments.js";
 import aptTransactionRouter from "./routes/apt_transaction.js";
 import aptInformationRouter from "./routes/apt_information.js";
 import { config } from "../server/middlewares/config.js";
-import pool from "./middlewares/pool.js";
 
 const app = express();
 app.use(helmet());

@@ -16,12 +16,12 @@ import { getSql } from "../middlewares/console.js";
 // }
 
 export function getUserById(id) {
-  const sql = `SELECT user_id, nickname, DATE_FORMAT(datetime_signup, '%Y-%M-%D %H:%i:%s'), email, phone_number, image FROM user WHERE id = ${id}`;
+  const sql = `SELECT user_id, nickname, DATE_FORMAT(datetime_signup, '%Y-%M-%D %H:%i:%s'), email, phone_number, image FROM user WHERE id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;
-      connection.query(sql, function (error, result) {
+      connection.query(sql, id, function (error, result) {
         if (error) {
           return reject("database", `${error.message}`);
         }
@@ -34,12 +34,12 @@ export function getUserById(id) {
 
 // 유저 검색 (by 유저 아이디)
 export function findByUserid(user_id) {
-  const sql = `SELECT id, user_id, user_pw, nickname, DATE_FORMAT(datetime_signup, '%Y-%M-%D %H:%i:%s'), email, phone_number, image FROM user WHERE user_id = "${user_id}"`;
+  const sql = `SELECT id, user_id, user_pw, nickname, DATE_FORMAT(datetime_signup, '%Y-%M-%D %H:%i:%s'), email, phone_number, image FROM user WHERE user_id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;
-      connection.query(sql, function (error, result) {
+      connection.query(sql, user_id, function (error, result) {
         if (error) {
           return reject("database", `${error.message}`);
         }
@@ -102,30 +102,34 @@ export async function makeUser(user, userImage) {
 
 // 유저 정보 수정
 export function updateUser(id, user, userImage) {
-  const sql = `UPDATE user SET nickname = "${user.nickname}", email="${user.email}", phone_number="${user.phone_number}", image="${userImage}" WHERE id = ${id}`;
+  const sql = `UPDATE user SET nickname = ?, email= ?, phone_number= ?, image= ? WHERE id = ? `;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;
-      connection.query(sql, function (error, result) {
-        if (error) {
-          return reject("database", `${error.message}`);
+      connection.query(
+        sql,
+        [user.nickname, user.email, user.phone_number, userImage, id],
+        function (error, result) {
+          if (error) {
+            return reject("database", `${error.message}`);
+          }
+          connection.release();
+          resolve(result);
         }
-        connection.release();
-        resolve(result);
-      });
+      );
     });
   });
 }
 
 // 유저 정보 삭제
 export function deleteUser(id) {
-  const sql = `delete from user where id= ${id}`;
+  const sql = `delete from user where id= ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;
-      connection.query(sql, function (error, result) {
+      connection.query(sql, id, function (error, result) {
         if (error) {
           return reject("database", `${error.message}`);
         }
@@ -138,12 +142,12 @@ export function deleteUser(id) {
 
 // 유저 아이디 중복 여부 확인
 export function duplicatescheckUserId(user_id) {
-  const checkUserId = `SELECT user_id FROM user WHERE user_id = "${user_id}"`;
+  const checkUserId = `SELECT user_id FROM user WHERE user_id = ?`;
   getSql(checkUserId);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;
-      connection.query(checkUserId, function (error, result) {
+      connection.query(checkUserId, user_id, function (error, result) {
         if (error) {
           return reject("database", `${error.message}`);
         }
@@ -156,12 +160,12 @@ export function duplicatescheckUserId(user_id) {
 
 // 유저 닉네임 중복 여부 확인
 export function duplicatescheckNickname(nickname) {
-  const checkNickname = `SELECT nickname FROM user WHERE nickname = "${nickname}"`;
+  const checkNickname = `SELECT nickname FROM user WHERE nickname = ?`;
   getSql(checkNickname);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;
-      connection.query(checkNickname, function (error, result) {
+      connection.query(checkNickname, nickname, function (error, result) {
         if (error) {
           return reject("database", `${error.message}`);
         }
@@ -174,12 +178,12 @@ export function duplicatescheckNickname(nickname) {
 
 // 유저 이메일 중복 여부 확인
 export function duplicatescheckEmail(email) {
-  const checkEmail = `SELECT email FROM user WHERE email = "${email}"`;
+  const checkEmail = `SELECT email FROM user WHERE email = ?`;
   getSql(checkEmail);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;
-      connection.query(checkEmail, function (error, result) {
+      connection.query(checkEmail, email, function (error, result) {
         if (error) {
           return reject("database", `${error.message}`);
         }
@@ -192,18 +196,22 @@ export function duplicatescheckEmail(email) {
 
 // 유저 핸드폰번호 중복 여부 확인
 export function duplicatescheckPhoneNumber(phone_number) {
-  const checkPhoneNumber = `SELECT phone_number FROM user WHERE phone_number = "${phone_number}"`;
+  const checkPhoneNumber = `SELECT phone_number FROM user WHERE phone_number = ?`;
   getSql(checkPhoneNumber);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;
-      connection.query(checkPhoneNumber, function (error, result) {
-        if (error) {
-          return reject("database", `${error.message}`);
+      connection.query(
+        checkPhoneNumber,
+        phone_number,
+        function (error, result) {
+          if (error) {
+            return reject("database", `${error.message}`);
+          }
+          connection.release();
+          resolve(result);
         }
-        connection.release();
-        resolve(result);
-      });
+      );
     });
   });
 }
