@@ -4,6 +4,7 @@ import session from "express-session";
 import expressMysqlSession from "express-mysql-session";
 import pool from "./middlewares/pool.js";
 import helmet from "helmet";
+import timeout from "connect-timeout";
 import usersRouter from "./routes/users.js";
 import postsRouter from "./routes/posts.js";
 import commentsRouter from "./routes/comments.js";
@@ -12,6 +13,8 @@ import aptInformationRouter from "./routes/apt_information.js";
 import { config } from "../server/middlewares/config.js";
 
 const app = express();
+
+app.use(timeout("5s"));
 app.use(helmet());
 // mysqlsessionstore 적용
 const MySQLStore = expressMysqlSession(session);
@@ -39,7 +42,11 @@ app.use(
     saveUninitialized: false,
   })
 );
-
+// app.use(function (req, res, next) {
+//   res.setTimeout(120000, function () {
+//     console.log("Request has timed out.");
+//   });
+// });
 // body-parser는 내장되어있음.  json 파싱하기 위해서 설정만 추가
 app.use(express.json());
 app.use(cookieParser());
@@ -59,3 +66,8 @@ app.use((error, req, res, next) => {
 app.listen(config.PORT.portNumber, () => {
   console.log("server is listening");
 });
+
+function haltOnTimedout(req, res, next) {
+  // req.timedout 시간 초과 발생 시 : true, 그 외 : false
+  if (!req.timedout) next();
+}
