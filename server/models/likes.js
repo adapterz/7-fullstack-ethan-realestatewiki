@@ -1,8 +1,10 @@
+import { getSql } from "../middlewares/console.js";
 import db from "../middlewares/db.js";
 
 // 좋아요 하기
 export function likePost(post_id, user_id) {
   const sql = `INSERT INTO likes(user_id, post_id) VALUES (${user_id}, ${post_id})`;
+  getSql(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
@@ -16,6 +18,7 @@ export function likePost(post_id, user_id) {
 // 좋아요 취소 하기
 export function dislikePost(post_id, user_id) {
   const sql = `DELETE FROM likes WHERE post_id = "${post_id}" AND user_id = "${user_id}"`;
+  getSql(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {
@@ -29,7 +32,7 @@ export function dislikePost(post_id, user_id) {
 // 게시글에 기존에 좋아요가 표시 되어 있었는지 확인하기
 export function checkLikeStatusInLikes(post_id, user_id) {
   const sql = `SELECT id, user_id, post_id, datetime_updated  FROM likes WHERE post_id = "${post_id}" AND user_id = "${user_id}"`;
-  console.log(sql);
+  getSql(sql);
   return new Promise((resolve, reject) => {
     db.query(sql, function (error, result) {
       if (error) {

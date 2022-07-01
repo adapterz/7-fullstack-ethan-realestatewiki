@@ -2,12 +2,17 @@ import * as sessionRepository from "../models/session.js";
 
 // 인증 여부 확인
 export const isAuth = async (req, res, next) => {
-  // console.log(req.sessionID);
   // sessionID가 없을 때, 예외처리
   if (!req.sessionID) {
-    return res
-      .status(401)
-      .json({ message: `Unauthorized : login is required.` });
+    return (
+      res
+        // 400 서버가 클라이언트 오류(예: 잘못된 요청 구문, 유효하지 않은 요청 메시지 프레이밍,
+        // 또는 변조된 요청 라우팅) 를 감지해 요청을 처리할 수 없거나, 하지 않는다는 것을 의미합니다.
+        // 401 클라이언트가 인증되지 않았거나, 유효한 인증 정보가 부족하여 요청이 거부되었음을 의미하는 상태값이다.
+        // 즉, 클라이언트가 인증되지 않았기 때문에 요청을 정상적으로 처리할 수 없다고 알려주는 것이다.
+        .status(401)
+        .json({ message: `Unauthorized : login is required.` })
+    );
   }
   // sessionID가 데이터베이스에 없을 때, 예외 처리
   const userSession = await sessionRepository.getDataBySessionId(req.sessionID);

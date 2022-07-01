@@ -5,6 +5,7 @@ import { validate } from "../middlewares/validate.js";
 import { isAuth } from "../middlewares/auth.js";
 import upload from "../middlewares/multer.js";
 import { imageExtensionErrorHandler } from "../middlewares/multer.js";
+import { getIpAndMoment } from "../middlewares/console.js";
 
 const router = express.Router();
 
@@ -99,15 +100,16 @@ const userInputOptionForUpdate = [
 ];
 
 // 로그인
-router.post("/signin", usersController.signin);
+router.post("/signin", getIpAndMoment, usersController.signin);
 // 로그 아웃
-router.get("/logout", usersController.logout);
+router.get("/logout", getIpAndMoment, usersController.logout);
 
 // 유저 조회 (by 유저 인덱스 번호)
-router.get("/", isAuth, usersController.getUserById);
+router.get("/", getIpAndMoment, isAuth, usersController.getUserById);
 // 회원 가입
 router.post(
   "/",
+  getIpAndMoment,
   upload.single("image"),
   imageExtensionErrorHandler,
   userInputOption,
@@ -116,6 +118,7 @@ router.post(
 // 유저 정보 수정
 router.put(
   "/",
+  getIpAndMoment,
   isAuth,
   upload.single("image"),
   imageExtensionErrorHandler,
@@ -123,6 +126,6 @@ router.put(
   usersController.updateUser
 );
 // 유저 정보 삭제
-router.delete("/:id", isAuth, usersController.deleteUser);
+router.delete("/:id", getIpAndMoment, isAuth, usersController.deleteUser);
 
 export default router;

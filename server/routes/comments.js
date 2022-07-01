@@ -3,6 +3,7 @@ import * as commentsController from "../controllers/comments.js";
 import { body } from "express-validator";
 import { validate } from "../middlewares/validate.js";
 import { isAuth } from "../middlewares/auth.js";
+import { getIpAndMoment } from "../middlewares/console.js";
 
 const router = express.Router();
 
@@ -30,21 +31,44 @@ const commentContentOption = [
 ];
 
 // 댓글 상세 조회 (by 댓글 인덱스 번호)
-router.get("/detail/:id", commentsController.getCommentById);
+router.get("/detail/:id", getIpAndMoment, commentsController.getCommentById);
 // 게시판 댓글 검색 (by 키워드 or 유저아이디)
-router.get("/post-comments", commentsController.searchPostComments);
+router.get(
+  "/post-comments",
+  getIpAndMoment,
+  commentsController.searchPostComments
+);
 // 아파트 정보 댓글 검색 (by 키워드 or 유저아이디)
-router.get("/apt-comments", commentsController.searchAptComments);
+router.get(
+  "/apt-comments",
+  getIpAndMoment,
+  commentsController.searchAptComments
+);
 // 댓글 검색 (by 관련 게시글 인덱스 번호)
-router.get("/getbypostid/:id", commentsController.getCommentsByPostId);
+router.get(
+  "/getbypostid/:id",
+  getIpAndMoment,
+  commentsController.getCommentsByPostId
+);
 // 댓글 검색 (by 관련 아파트 인덱스 번호)
-router.get("/getbyaptid/:id", commentsController.getCommentsByAptId);
+router.get(
+  "/getbyaptid/:id",
+  getIpAndMoment,
+  commentsController.getCommentsByAptId
+);
 // 댓글 작성
-router.post("/", isAuth, commentContentOption, commentsController.makeComment);
+router.post(
+  "/",
+  getIpAndMoment,
+  isAuth,
+  commentContentOption,
+  commentsController.makeComment
+);
 
 // 게시글 하단 댓글 수정
 router.put(
   "/commentinpost/:id",
+  getIpAndMoment,
   isAuth,
   commentContentOption,
   commentsController.updatePostComment
@@ -53,6 +77,7 @@ router.put(
 // 아파트 정보 하단 댓글 삭제
 router.put(
   "/commentinaptinfo/:id",
+  getIpAndMoment,
   isAuth,
   commentContentOption,
   commentsController.updateAptComment
@@ -61,12 +86,14 @@ router.put(
 // 게시글 하단 댓글 삭제
 router.delete(
   "/commentinpost/:id",
+  getIpAndMoment,
   isAuth,
   commentsController.deletePostComment
 );
 // 아파트 정보 하단 댓글 삭제
 router.delete(
   "/commentinaptinfo/:id",
+  getIpAndMoment,
   isAuth,
   commentsController.deleteAptComment
 );

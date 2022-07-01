@@ -1,5 +1,6 @@
 import * as aptInfoRepository from "../models/apt_information.js";
 import PAGE_SIZE from "../utils/const.js";
+import { getClientIpAndMoment } from "../middlewares/console.js";
 // 아파트 검색 (by 아파트 이름)
 
 export async function getAptInfoByAptName(req, res) {
