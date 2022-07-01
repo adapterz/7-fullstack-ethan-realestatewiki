@@ -103,7 +103,7 @@ export function getPostCommentByUserIdByPagenation(userId, start, pageSize) {
       if (err) throw err;
       connection.query(
         sql,
-        [keyword, start, pageSize],
+        [userId, start, pageSize],
         function (error, result) {
           if (error) {
             return reject("database", `${error.message}`);

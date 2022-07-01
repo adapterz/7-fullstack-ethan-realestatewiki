@@ -4,6 +4,7 @@ import { body } from "express-validator";
 import { validate } from "../middlewares/validate.js";
 import { isAuth } from "../middlewares/auth.js";
 import { getIpAndMoment } from "../middlewares/console.js";
+import limiter from "../middlewares/ratelimit.js";
 
 const router = express.Router();
 
@@ -35,24 +36,28 @@ router.get("/detail/:id", getIpAndMoment, commentsController.getCommentById);
 // 게시판 댓글 검색 (by 키워드 or 유저아이디)
 router.get(
   "/post-comments",
+  limiter,
   getIpAndMoment,
   commentsController.searchPostComments
 );
 // 아파트 정보 댓글 검색 (by 키워드 or 유저아이디)
 router.get(
   "/apt-comments",
+  limiter,
   getIpAndMoment,
   commentsController.searchAptComments
 );
 // 댓글 검색 (by 관련 게시글 인덱스 번호)
 router.get(
   "/getbypostid/:id",
+  limiter,
   getIpAndMoment,
   commentsController.getCommentsByPostId
 );
 // 댓글 검색 (by 관련 아파트 인덱스 번호)
 router.get(
   "/getbyaptid/:id",
+  limiter,
   getIpAndMoment,
   commentsController.getCommentsByAptId
 );

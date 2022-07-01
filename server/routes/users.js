@@ -6,6 +6,7 @@ import { checkSessionIdForSignup, isAuth } from "../middlewares/auth.js";
 import upload from "../middlewares/multer.js";
 import { imageExtensionErrorHandler } from "../middlewares/multer.js";
 import { getIpAndMoment } from "../middlewares/console.js";
+import limiter from "../middlewares/ratelimit.js";
 
 const router = express.Router();
 
@@ -105,7 +106,7 @@ router.post("/signin", getIpAndMoment, usersController.signin);
 router.get("/logout", getIpAndMoment, usersController.logout);
 
 // 유저 조회 (by 유저 인덱스 번호)
-router.get("/", getIpAndMoment, isAuth, usersController.getUserById);
+router.get("/", limiter, getIpAndMoment, isAuth, usersController.getUserById);
 // 회원 가입
 router.post(
   "/",

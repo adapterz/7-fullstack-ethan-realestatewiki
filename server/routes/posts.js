@@ -4,6 +4,7 @@ import { body } from "express-validator";
 import { validate } from "../middlewares/validate.js";
 import { isAuth } from "../middlewares/auth.js";
 import { getIpAndMoment } from "../middlewares/console.js";
+import limiter from "../middlewares/ratelimit.js";
 
 const router = express.Router();
 
@@ -44,10 +45,10 @@ const postContentOption = [
 ];
 
 // 게시글 상세 조회 (by 게시글 인덱스 번호)
-router.get("/:id", getIpAndMoment, postsController.getPostById);
+router.get("/:id", limiter, getIpAndMoment, postsController.getPostById);
 
 // 게시글 검색 (by 키워드 or 유저아이디)
-router.get("/", getIpAndMoment, postsController.searchPost);
+router.get("/", limiter, getIpAndMoment, postsController.searchPost);
 
 // 게시글 작성
 router.post(
@@ -71,6 +72,12 @@ router.put(
 router.delete("/:id", getIpAndMoment, isAuth, postsController.deletePost);
 
 // 좋아요 설정하기 / 취소하기
-router.get("/like/:id", getIpAndMoment, isAuth, postsController.likePostById);
+router.get(
+  "/like/:id",
+  limiter,
+  getIpAndMoment,
+  isAuth,
+  postsController.likePostById
+);
 
 export default router;

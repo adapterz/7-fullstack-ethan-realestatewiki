@@ -78,26 +78,6 @@ export async function makeUser(user, userImage) {
       );
     });
   });
-  // return new Promise((resolve, reject) => {
-  //   console.log(sql);
-  //   db.query(
-  //     sql,
-  //     [
-  //       user.user_id,
-  //       user.user_pw,
-  //       user.nickname,
-  //       user.email,
-  //       user.phone_number,
-  //       userImage,
-  //     ],
-  //     function (error, result) {
-  //       if (error) {
-  //         reject(error);
-  //       }
-  //       resolve(result);
-  //     }
-  //   );
-  // });
 }
 
 // 유저 정보 수정
