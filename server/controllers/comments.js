@@ -1,7 +1,6 @@
 import * as commentRepository from "../models/comments.js";
 import { isEmptyArr, pagenation } from "../utils/utils.js";
 import PAGE_SIZE from "../utils/const.js";
-import { getClientIpAndMoment } from "../middlewares/console.js";
 
 // 댓글 검색 (by 댓글 번호)
 export async function getCommentById(req, res) {

@@ -2,7 +2,6 @@ import * as postRepository from "../models/posts.js";
 import * as likeRepository from "../models/likes.js";
 import { isEmptyArr, pagenation } from "../utils/utils.js";
 import PAGE_SIZE from "../utils/const.js";
-import { getClientIpAndMoment } from "../middlewares/console.js";
 
 // 게시글 검색 (by 게시글 번호)
 export async function getPostById(req, res) {

@@ -2,7 +2,7 @@ import express from "express";
 import * as usersController from "../controllers/users.js";
 import { body } from "express-validator";
 import { validate } from "../middlewares/validate.js";
-import { isAuth } from "../middlewares/auth.js";
+import { checkSessionIdForSignup, isAuth } from "../middlewares/auth.js";
 import upload from "../middlewares/multer.js";
 import { imageExtensionErrorHandler } from "../middlewares/multer.js";
 import { getIpAndMoment } from "../middlewares/console.js";
@@ -110,6 +110,7 @@ router.get("/", getIpAndMoment, isAuth, usersController.getUserById);
 router.post(
   "/",
   getIpAndMoment,
+  checkSessionIdForSignup,
   upload.single("image"),
   imageExtensionErrorHandler,
   userInputOption,

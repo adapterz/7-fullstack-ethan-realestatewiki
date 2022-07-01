@@ -1,6 +1,5 @@
 import db from "../middlewares/db.js";
 import * as aptTransactionRepository from "../models/apt_transaction.js";
-import { getClientIpAndMoment } from "../middlewares/console.js";
 
 // 아파트 거래 내역 조회(by 아파트 이름, 법정동)
 export async function getAptTranactionListByAptNameAndDong(req, res) {

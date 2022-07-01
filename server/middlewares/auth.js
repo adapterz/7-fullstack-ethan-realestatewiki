@@ -1,7 +1,9 @@
 import * as sessionRepository from "../models/session.js";
+import { isEmptyArr } from "../utils/utils.js";
 
 // 인증 여부 확인
 export const isAuth = async (req, res, next) => {
+  console.log(req.sessionID);
   // sessionID가 없을 때, 예외처리
   if (!req.sessionID) {
     return (
@@ -44,10 +46,13 @@ export const isAuth = async (req, res, next) => {
   next();
 };
 
-// 비어있는 배열인지 확인
-function isEmptyArr(arr) {
-  if (Array.isArray(arr) && arr.length === 0) {
-    return true;
+// 로그인 후 즉시, 회원 가입 요청 시, 사용자의 sessionId 유무를 확인하는 코드
+export const checkSessionIdForSignup = async (req, res, next) => {
+  const userSession = await sessionRepository.getDataBySessionId(req.sessionID);
+  if (!isEmptyArr(userSession)) {
+    return res
+      .status(403)
+      .json({ message: `Forbidden : Already logined. Cannot signup.` });
   }
-  return false;
-}
+  next();
+};

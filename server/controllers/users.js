@@ -2,34 +2,46 @@ import * as userRepository from "../models/users.js";
 import bcrypt from "bcrypt";
 import { deletefileOfInvalidClient } from "../middlewares/multer.js";
 import { isEmptyArr } from "../utils/utils.js";
-import { getClientIpAndMoment } from "../middlewares/console.js";
 
 // 로그인
-export async function signin(req, res) {
-  const { user_id, user_pw } = req.body;
-  // user_id로 해당 회원이 존재하는지 확인
-  const user = await userRepository.findByUserid(user_id);
-  if (!user) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request : Invalid user or password" });
-  }
-  // 사용자가 입력한 패스워드, db에 저장된 암호화된 패스워드를 비교
-  const checkPw = await bcrypt.compare(user_pw, user[0].user_pw);
-  if (!checkPw) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request : Invalid user or password" });
-  }
-  // 암호일치 시 session 저장
-  req.session.index = user[0].id;
-  req.session.user_id = user[0].user_id;
-  req.session.nickname = user[0].nickname;
-  req.session.email = user[0].email;
-  req.session.phone_number = user[0].phone_number;
-  await req.session.save();
+export async function signin(req, res, next) {
+  try {
+    const { user_id, user_pw } = req.body;
+    // user_id로 해당 회원이 존재하는지 확인
+    const user = await userRepository.findByUserid(user_id);
+    if (isEmptyArr(user)) {
+      const error = new Error("Bad Request : Invalid user or password");
+      error.name = "wrongIdError";
+      throw error;
+    }
+    // 사용자가 입력한 패스워드, db에 저장된 암호화된 패스워드를 비교
+    const checkPw = await bcrypt.compare(user_pw, user[0].user_pw);
+    if (!checkPw) {
+      const error = new Error("Bad Request : Invalid user or password");
+      error.name = "wrongPwError";
+      throw error;
+    }
+    // 암호일치 시 session 저장
+    req.session.index = user[0].id;
+    req.session.user_id = user[0].user_id;
+    req.session.nickname = user[0].nickname;
+    req.session.email = user[0].email;
+    req.session.phone_number = user[0].phone_number;
+    await req.session.save();
 
-  return res.status(200).json(`OK : ${req.session.nickname} 환영합니다.`);
+    return res.status(200).json(`OK : ${req.session.nickname} 환영합니다.`);
+  } catch (error) {
+    if (error.name === "wrongIdError") {
+      return res
+        .status(400)
+        .json({ message: "Bad Request : Invalid user or password" });
+    }
+    if (error.name === "wrongPwError") {
+      return res
+        .status(400)
+        .json({ message: "Bad Request : Invalid user or password" });
+    }
+  }
 }
 
 //로그아웃
@@ -42,40 +54,109 @@ export function logout(req, res) {
 
 // 나의 정보 조회 (로그인 후 나의 정보 조회)
 export async function getUserById(req, res) {
-  // id 변수에 로그인 시 저장 해놓은 유저 인덱스 번호 지정
-  // req.index_check : auth.js에서 생성된 값
-  // TODO : req 라고 되어 있어서 헷갈리는 부분이 있다. (서버에서 가져온 것인지 모른다.)
-  const id = req.index_check;
-  const user = await userRepository.getUserById(id);
-  // user가 존재하지 않을 때
-  if (user[0] === undefined) {
-    return res.status(404).json({ message: `Not Found : user doesn't exist` });
+  try {
+    // id 변수에 로그인 시 저장 해놓은 유저 인덱스 번호 지정
+    // req.index_check : auth.js에서 생성된 값
+    // TODO : req 라고 되어 있어서 헷갈리는 부분이 있다. (서버에서 가져온 것인지 모른다.)
+    const id = req.index_check;
+    const user = await userRepository.getUserById(id);
+    // user가 존재하지 않을 때
+    if (user[0] === undefined) {
+      const error = new Error("Bad Request : Invalid user or password");
+      error.name = "notExistingUserError";
+      throw error;
+    }
+    return res.status(200).json(user);
+  } catch (error) {
+    if (error.name === "notExistingUserError") {
+      return res
+        .status(404)
+        .json({ message: `Not Found : user doesn't exist` });
+    }
   }
-  console.log(
-    `유저 인덱스가 ${id}이고 닉네임이 ${user[0].nickname}인 유저의 정보를 조회합니다.`
-  );
-  return res.status(200).json(user);
 }
 
 // 회원 가입
 export async function makeUser(req, res) {
-  // 이미 로그인 되어 있을 때
-  if (req.index_check !== undefined) {
-    return res.status(403).json({ message: `Forbidden : you already logined` });
-  }
-  const userData = req.body;
-  let userImage = null;
-  const saltRound = 10;
-  userData.user_pw = await bcrypt.hash(userData.user_pw, saltRound);
-  // 이미지가 첨부되지 않았을 때 회원 가입 방법
-  if (req.file == undefined) {
-    //TODO 추후 메서드명 직관적으로 변경 ex)read, write 이용
-    //TODO 프리티어 규칙 변경
+  try {
+    // 이미 로그인 되어 있을 때
+    if (req.index_check !== undefined) {
+      const error = new Error("`Forbidden : you already logined");
+      error.name = "alreadyLoginedError";
+      throw error;
+    }
+    const userData = req.body;
+    let userImage = null;
+    const saltRound = 10;
+    userData.user_pw = await bcrypt.hash(userData.user_pw, saltRound);
+    // 이미지가 첨부되지 않았을 때 회원 가입 방법
+    if (req.file == undefined) {
+      //TODO 추후 메서드명 직관적으로 변경 ex)read, write 이용
+      //TODO 프리티어 규칙 변경
+      const checkUserId = await userRepository.duplicatescheckUserId(
+        userData.user_id
+      );
+      // UserId가 중복될 때,
+      if (!isEmptyArr(checkUserId)) {
+        const error = new Error("`Conflict : Duplicate user ID");
+        error.name = "duplicatedIdError";
+        throw error;
+      }
+
+      // Nickname이 중복될 때,
+      const checkNickname = await userRepository.duplicatescheckNickname(
+        userData.nickname
+      );
+      if (!isEmptyArr(checkNickname)) {
+        const error = new Error("`Conflict : Duplicate nickname");
+        error.name = "duplicatedNicknameError";
+        throw error;
+      }
+
+      // email이 중복될 때,
+      // 한 유저가 같은 이메일로 다른 아이디를 만들고 싶을 때는?
+      const checkEmail = await userRepository.duplicatescheckEmail(
+        userData.email
+      );
+      if (!isEmptyArr(checkEmail)) {
+        const error = new Error("`Conflict : Duplicate email");
+        error.name = "duplicatedEmailError";
+        throw error;
+      }
+
+      //핸드폰 번호가 중복될 때
+      const checkPhoneNumber = await userRepository.duplicatescheckPhoneNumber(
+        userData.phone_number
+      );
+      if (!isEmptyArr(checkPhoneNumber)) {
+        const error = new Error("`Conflict : Duplicate phonenumber");
+        error.name = "duplicatePhonenumberError";
+        throw error;
+      }
+      //TODO null인데 왜 넘겨?
+      // const user = await userRepository.makeUser(userData, userImage);
+      await userRepository.makeUser(userData);
+      return res.status(201).json({ message: `Created : signup success` });
+    }
+
+    // 이미지가 첨부되었을 때 회원 가입
+    // 첨부된 이미지의 형식이 잘못되었을 때,
+    // multer라이브러리를 사용한 이미지 업로드 처리 중 발생한 이미지 형식 오류
+    //TODO : 같이 이미지 넘기면?
+    //TODO : 이미지 있든 없든, 한번에 회원 가입 로직을 쓰는 방법을 적용 (조건을 걸어서)
+    if (req.fileValidationError) {
+      return res
+        .status(400)
+        .json({ message: `Bad Request : you can upload only image file` });
+    }
+
+    userImage = `${req.file.destination}${req.file.filename}`;
     const checkUserId = await userRepository.duplicatescheckUserId(
       userData.user_id
     );
     // UserId가 중복될 때,
     if (!isEmptyArr(checkUserId)) {
+      deletefileOfInvalidClient(userImage);
       return res.status(409).json({ message: `Conflict : Duplicate user ID` });
     }
 
@@ -84,15 +165,16 @@ export async function makeUser(req, res) {
       userData.nickname
     );
     if (!isEmptyArr(checkNickname)) {
+      deletefileOfInvalidClient(userImage);
       return res.status(409).json({ message: `Conflict : Duplicate nickname` });
     }
 
     // email이 중복될 때,
-    // 한 유저가 같은 이메일로 다른 아이디를 만들고 싶을 때는?
     const checkEmail = await userRepository.duplicatescheckEmail(
       userData.email
     );
     if (!isEmptyArr(checkEmail)) {
+      deletefileOfInvalidClient(userImage);
       return res.status(409).json({ message: `Conflict : Duplicate email` });
     }
 
@@ -101,64 +183,34 @@ export async function makeUser(req, res) {
       userData.phone_number
     );
     if (!isEmptyArr(checkPhoneNumber)) {
+      deletefileOfInvalidClient(userImage);
       return res
         .status(409)
         .json({ message: `Conflict : Duplicate phonenumber` });
     }
-    //TODO null인데 왜 넘겨?
     const user = await userRepository.makeUser(userData, userImage);
     return res.status(201).json({ message: `Created : signup success` });
+  } catch (error) {
+    if (error.name === "alreadyLoginedError") {
+      return res
+        .status(403)
+        .json({ message: `Forbidden : you already logined` });
+    }
+    if (error.name === "duplicatedIdError") {
+      return res.status(409).json({ message: `Conflict : Duplicate user ID` });
+    }
+    if (error.name === "duplicatedNicknameError") {
+      return res.status(409).json({ message: `Conflict : Duplicate nickname` });
+    }
+    if (error.name === "duplicatedEmailError") {
+      return res.status(409).json({ message: `Conflict : Duplicate email` });
+    }
+    if (error.name === "duplicatedPhonenumberError") {
+      return res
+        .status(409)
+        .json({ message: `Conflict : Duplicate phonenumber` });
+    }
   }
-
-  // 이미지가 첨부되었을 때 회원 가입
-  // 첨부된 이미지의 형식이 잘못되었을 때,
-  // multer라이브러리를 사용한 이미지 업로드 처리 중 발생한 이미지 형식 오류
-  //TODO : 같이 이미지 넘기면?
-  //TODO : 이미지 있든 없든, 한번에 회원 가입 로직을 쓰는 방법을 적용 (조건을 걸어서)
-  if (req.fileValidationError) {
-    return res
-      .status(400)
-      .json({ message: `Bad Request : you can upload only image file` });
-  }
-
-  userImage = `${req.file.destination}${req.file.filename}`;
-  const checkUserId = await userRepository.duplicatescheckUserId(
-    userData.user_id
-  );
-  // UserId가 중복될 때,
-  if (!isEmptyArr(checkUserId)) {
-    deletefileOfInvalidClient(userImage);
-    return res.status(409).json({ message: `Conflict : Duplicate user ID` });
-  }
-
-  // Nickname이 중복될 때,
-  const checkNickname = await userRepository.duplicatescheckNickname(
-    userData.nickname
-  );
-  if (!isEmptyArr(checkNickname)) {
-    deletefileOfInvalidClient(userImage);
-    return res.status(409).json({ message: `Conflict : Duplicate nickname` });
-  }
-
-  // email이 중복될 때,
-  const checkEmail = await userRepository.duplicatescheckEmail(userData.email);
-  if (!isEmptyArr(checkEmail)) {
-    deletefileOfInvalidClient(userImage);
-    return res.status(409).json({ message: `Conflict : Duplicate email` });
-  }
-
-  //핸드폰 번호가 중복될 때
-  const checkPhoneNumber = await userRepository.duplicatescheckPhoneNumber(
-    userData.phone_number
-  );
-  if (!isEmptyArr(checkPhoneNumber)) {
-    deletefileOfInvalidClient(userImage);
-    return res
-      .status(409)
-      .json({ message: `Conflict : Duplicate phonenumber` });
-  }
-  const user = await userRepository.makeUser(userData, userImage);
-  return res.status(201).json({ message: `Created : signup success` });
 }
 
 // 유저 정보 수정

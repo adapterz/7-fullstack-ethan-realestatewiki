@@ -1,5 +1,4 @@
 import db from "../middlewares/db.js";
-import bcrypt from "bcrypt";
 import { getSql } from "../middlewares/console.js";
 
 // 유저 조회 (by 유저 인덱스 번호)
@@ -32,8 +31,7 @@ export function findByUserid(user_id) {
 
 // 회원 가입
 export async function makeUser(user, userImage) {
-  const sql =
-    "INSERT INTO user(user_id, user_pw, nickname, datetime_signup, email, phone_number, image) VALUES (?,?,?,default,?,?,?)";
+  const sql = `INSERT INTO user(user_id, user_pw, nickname, datetime_signup, email, phone_number, image) VALUES (?,?,?,default,?,?,?)`;
   getSql(sql);
   // query 다양한 예제 보고 할 것
   return new Promise((resolve, reject) => {
