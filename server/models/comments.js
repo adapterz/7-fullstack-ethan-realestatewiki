@@ -198,7 +198,25 @@ export function getAptCommentByUserIdByPagenation(userId, start, pageSize) {
 
 // 댓글 검색 (by 관련 게시글 인덱스 번호)
 export function getCommentByPostId(postId) {
-  const sql = `SELECT comment.id, comment.post_id, comment.user_id, comment.content, DATE_FORMAT(comment.datetime_created, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment left join user on comment.user_id = user.id WHERE post_id = ?`;
+  const sql = `SELECT comment_post.id, comment_post.post_id, comment_post.user_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%y-%m-%d') as datetime_updated, user.user_id, user.image FROM comment_post left join user on comment_post.user_id = user.id WHERE comment_post.post_id = ?`;
+  getSql(sql);
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, postId, function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
+    });
+  });
+}
+
+// 댓글 검색 (by 관련 게시글 인덱스 번호)
+export function getCommentCountByPostId(postId) {
+  const sql = `SELECT count(*) FROM comment WHERE post_id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -216,7 +234,7 @@ export function getCommentByPostId(postId) {
 
 // 댓글 검색 (by 관련 아파트 인덱스 번호)
 export function getCommentByAptId(aptId) {
-  const sql = `SELECT comment.id, comment.post_id, comment.user_id, comment.apt_id, comment.content, DATE_FORMAT(comment.datetime_created, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment left join user on comment.user_id = user.id WHERE apt_id = ?`;
+  const sql = `SELECT comment_apt.id, apartment_information.name, comment_apt.user_id, user.image, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_created, '%y-%m-%d') AS datetime_created, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id left join apartment_information on comment_apt.apt_id = apartment_information.id WHERE apt_id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {

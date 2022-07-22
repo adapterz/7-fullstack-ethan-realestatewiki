@@ -11,9 +11,19 @@ import commentsRouter from "./routes/comments.js";
 import aptTransactionRouter from "./routes/apt_transaction.js";
 import aptInformationRouter from "./routes/apt_information.js";
 import { config } from "../server/middlewares/config.js";
+import morgan from "morgan";
+import logger from "./middlewares/winston.js";
+import cors from "cors";
+
+const combined =
+  ':remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"';
+// 기존 combined 포멧에서 timestamp만 제거
+const morganFormat = process.env.NODE_ENV !== "production" ? "dev" : combined; // NOTE: morgan 출력 형태 server.env에서 NODE_ENV 설정 production : 배포 dev : 개발
+console.log(morganFormat);
 
 const app = express();
-
+app.use(cors(["http://127.0.0.1:8080"]));
+app.use(morgan(morganFormat, { stream: logger.stream })); // morgan 로그 설정
 app.use(timeout("5s"));
 app.use(helmet());
 // mysqlsessionstore 적용
@@ -42,12 +52,6 @@ app.use(
     saveUninitialized: false,
   })
 );
-// app.use(function (req, res, next) {
-//   res.setTimeout(120000, function () {
-//     console.log("Request has timed out.");
-//   });
-// });
-// body-parser는 내장되어있음.  json 파싱하기 위해서 설정만 추가
 app.use(express.json());
 app.use(cookieParser());
 app.use("/users", usersRouter);
@@ -64,10 +68,17 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(config.PORT.portNumber, () => {
-  console.log("server is listening");
+  logger.info(console.log("server is listening"));
 });
 
 function haltOnTimedout(req, res, next) {
   // req.timedout 시간 초과 발생 시 : true, 그 외 : false
   if (!req.timedout) next();
 }
+
+// app.use(function (req, res, next) {
+//   res.setTimeout(120000, function () {
+//     console.log("Request has timed out.");
+//   });
+// });
+// body-parser는 내장되어있음.  json 파싱하기 위해서 설정만 추가

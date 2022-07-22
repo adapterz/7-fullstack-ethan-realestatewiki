@@ -42,7 +42,7 @@ export function getAptInfoByAptNameByPagenation(aptName, start, pageSize) {
 
 // 아파트 상세 조회 (by 아파트 id)
 export function getAptInfoById(id) {
-  const sql = `SELECT name, address, households_count, parking_spaces_count, all_dong_count, approval_date, datetime_updated FROM apartment_information WHERE id = ?`;
+  const sql = `SELECT name, address, households_count, parking_spaces_count, all_dong_count,  FROM_UNIXTIME(approval_date/1000, '%y-%m-%d') as approval_date,  FROM_UNIXTIME(datetime_updated/1000, '%y-%m-%d') as datetime_updated FROM apartment_information WHERE id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {

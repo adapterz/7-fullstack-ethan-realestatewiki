@@ -50,7 +50,7 @@ router.get(
 // 댓글 검색 (by 관련 게시글 인덱스 번호)
 router.get(
   "/getbypostid/:id",
-  limiter,
+  // limiter,
   getIpAndMoment,
   commentsController.getCommentsByPostId
 );

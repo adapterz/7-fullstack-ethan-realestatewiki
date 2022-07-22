@@ -3,122 +3,6 @@ import * as likeRepository from "../models/likes.js";
 import { isEmptyArr, pagenation } from "../utils/utils.js";
 import PAGE_SIZE from "../utils/const.js";
 
-// 게시글 검색 (by 게시글 번호)
-export async function getPostById(req, res) {
-  const id = req.params.id;
-
-  if (isNaN(id)) {
-    return res
-      .status(400)
-      .json({ message: `Bad Request : post number must be int` });
-  }
-
-  const post = await postRepository.getPostById(id);
-  if (post[0] === undefined) {
-    return res.status(404).json({ message: `Not Found : post doesn't exist` });
-  }
-
-  // 이전에 조회했던 게시글 정보
-  const priorViewPost = req.cookies.viewPost;
-  console.log(`조회해본 글 : ${priorViewPost}`);
-
-  // 이 방식대로 쿠키에 대한 조회수 집계를 적용한다면, 백만단위 게시글 번호(id : 1000000) 기준, 쿠키당 480개 게시글에 대한 조회 여부 확인 가능
-  // 이 방식의 문제점은, 앞부분의 게시글 조회 내역이 쿠키에 누적된다는 것임.
-  // 1번 게시글을 누른뒤 15분이 지나도, 2번 게시글을 14분째에 눌렀다면, 그 이후부터 15분이 지나야 1번 게시글의 조회수가 오르게 된다.
-  // 해결 방법, 시간이 지나면, 쿠키의 내용을 수정하는 방법 어떻게 할지 생각이 안남.
-  // 이전에 조회했던 게시글 정보가 없다면, 조회수를 올리고, 쿠키 viewPost에 게시글 id 추가
-  if (req.cookies.viewPost === undefined) {
-    await postRepository.views(id);
-    return res
-      .status(200)
-      .cookie("viewPost", id, { maxAge: 15 * 60 * 1000 })
-      .json(post);
-  }
-
-  // 조회했던 게시글 정보의 배열
-  const pageViewArray = req.cookies.viewPost.split(",");
-
-  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서,
-  // 현재 페이지 인덱스가 포함되어 있으면 조회수를 올리지 않는다., 쿠키에 현재 페이지 인덱스 미포함.
-  // TODO 코드 이해 어려움. 기능 자체에 대한 설명
-
-  // 조회된 게시글이 기존에 봤었던 게시글인지 확인
-  if (
-    pageViewArray.find(
-      (viewedPostIndex) => parseInt(viewedPostIndex) === parseInt(id)
-    ) == parseInt(id)
-  ) {
-    return res
-      .status(200)
-      .cookie("viewPost", `${priorViewPost}`, { maxAge: 15 * 60 * 1000 })
-      .json(post);
-  }
-  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서,
-  // 현재 페이지 인덱스가 포함되어 없으면 조회수를 올리고, 쿠키에 현재 페이지 인덱스 포함.
-  await postRepository.views(id);
-  return res
-    .status(200)
-    .cookie("viewPost", `${priorViewPost},${id}`, { maxAge: 15 * 60 * 1000 })
-    .json(post);
-}
-
-// 게시글 검색 (by 유저아이디 or 키워드)
-export async function searchPost(req, res) {
-  let page = parseInt(req.query.page);
-  if (!page) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request : Please enter page number." });
-  }
-  // 검색어 입력이 되지 않았을 때,
-  if (!req.query.userId && !req.query.keyword) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request : Please enter your search term." });
-  }
-  // 검색어가 두 종류 입력 되었을 때,
-  if (req.query.userId && req.query.keyword) {
-    return res.status(400).json({
-      message: "Bad Request : Please enter only one type of search term.",
-    });
-  }
-  // keyword 검색 (userId 검색어 미입력)
-  if (!req.query.userId) {
-    console.log("키워드 검색 시작");
-    const keyword = req.query.keyword;
-    // 키워드로 검색했을 때, 데이터가 있는지 확인
-    const post = await postRepository.getPostByKeyword(keyword);
-    // 데이터가 없다면, 오류 발생
-    if (post[0] === undefined) {
-      return res
-        .status(404)
-        .json({ message: "Not Found : post doesn't exist" });
-    }
-    let startItemNumber = await pagenation(page, PAGE_SIZE, post.length);
-    const postByKeyword = await postRepository.getPostByKeywordByPagenation(
-      keyword,
-      startItemNumber[1],
-      PAGE_SIZE
-    );
-    return res.status(200).json(postByKeyword);
-  }
-  // userId 검색 (keyword 검색어 미입력일 경우)
-  console.log("userId 검색");
-  const userId = req.query.userId;
-  const post = await postRepository.getPostByUserId(userId);
-  if (post[0] === undefined) {
-    return res.status(404).json({ message: "Not Found : post doesn't exist" });
-  }
-  let startItemNumber = await pagenation(page, PAGE_SIZE, post.length);
-  console.log(startItemNumber);
-  const postByUserId = await postRepository.getPostByUserIdByPagenation(
-    userId,
-    startItemNumber[1],
-    PAGE_SIZE
-  );
-  return res.status(200).json(postByUserId);
-}
-
 // 게시글 작성
 export async function makePost(req, res) {
   req.body.author_id = req.index_check;
@@ -210,6 +94,153 @@ export async function deletePost(req, res) {
       .json({ message: `Not Found : cannot delete post. post doesn't exist.` });
   }
   return res.status(204).json({ message: `No Content : post delete success` });
+}
+
+// 게시글 검색 (by 게시글 번호)
+export async function getPostById(req, res) {
+  const id = req.params.id;
+
+  if (isNaN(id)) {
+    return res
+      .status(400)
+      .json({ message: `Bad Request : post number must be int` });
+  }
+
+  const post = await postRepository.getPostById(id);
+  if (post[0] === undefined) {
+    return res.status(404).json({ message: `Not Found : post doesn't exist` });
+  }
+
+  // 이전에 조회했던 게시글 정보
+  const priorViewPost = req.cookies.viewPost;
+  console.log(`조회해본 글 : ${priorViewPost}`);
+
+  // 이 방식대로 쿠키에 대한 조회수 집계를 적용한다면, 백만단위 게시글 번호(id : 1000000) 기준, 쿠키당 480개 게시글에 대한 조회 여부 확인 가능
+  // 이 방식의 문제점은, 앞부분의 게시글 조회 내역이 쿠키에 누적된다는 것임.
+  // 1번 게시글을 누른뒤 15분이 지나도, 2번 게시글을 14분째에 눌렀다면, 그 이후부터 15분이 지나야 1번 게시글의 조회수가 오르게 된다.
+  // 해결 방법, 시간이 지나면, 쿠키의 내용을 수정하는 방법 어떻게 할지 생각이 안남.
+  // 이전에 조회했던 게시글 정보가 없다면, 조회수를 올리고, 쿠키 viewPost에 게시글 id 추가
+  if (req.cookies.viewPost === undefined) {
+    await postRepository.views(id);
+    return res
+      .status(200)
+      .cookie("viewPost", id, { maxAge: 15 * 60 * 1000 })
+      .json(post);
+  }
+
+  // 조회했던 게시글 정보의 배열
+  const pageViewArray = req.cookies.viewPost.split(",");
+
+  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서,
+  // 현재 페이지 인덱스가 포함되어 있으면 조회수를 올리지 않는다., 쿠키에 현재 페이지 인덱스 미포함.
+  // TODO 코드 이해 어려움. 기능 자체에 대한 설명
+
+  // 조회된 게시글이 기존에 봤었던 게시글인지 확인
+  if (
+    pageViewArray.find(
+      (viewedPostIndex) => parseInt(viewedPostIndex) === parseInt(id)
+    ) == parseInt(id)
+  ) {
+    return res
+      .status(200)
+      .cookie("viewPost", `${priorViewPost}`, { maxAge: 15 * 60 * 1000 })
+      .json(post);
+  }
+  // 쿠키가 있을 때는, 쿠키에 포함된 이전에 본 페이지 데이터를 확인해서,
+  // 현재 페이지 인덱스가 포함되어 없으면 조회수를 올리고, 쿠키에 현재 페이지 인덱스 포함.
+  await postRepository.views(id);
+  return res
+    .status(200)
+    .cookie("viewPost", `${priorViewPost},${id}`, { maxAge: 15 * 60 * 1000 })
+    .json(post);
+}
+
+export async function getPopularPost(req, res) {
+  const post = await postRepository.getPopularPost();
+  if (post[0] === undefined) {
+    return res.status(404).json({ message: "Not Found : post doesn't exist" });
+  }
+  return res.status(200).json(post);
+}
+
+// 게시글 검색 (by 유저아이디 or 키워드)
+export async function searchPost(req, res) {
+  let page = parseInt(req.query.page);
+  if (!page) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter page number." });
+  }
+  // 검색어 입력이 되지 않았을 때,
+  if (!req.query.userId && !req.query.keyword) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter your search term." });
+  }
+  // 검색어가 두 종류 입력 되었을 때,
+  if (req.query.userId && req.query.keyword) {
+    return res.status(400).json({
+      message: "Bad Request : Please enter only one type of search term.",
+    });
+  }
+  // keyword 검색 (userId 검색어 미입력)
+  if (!req.query.userId) {
+    console.log("키워드 검색 시작");
+    const keyword = req.query.keyword;
+    // 키워드로 검색했을 때, 데이터가 있는지 확인
+    const post = await postRepository.getPostByKeyword(keyword);
+    // 데이터가 없다면, 오류 발생
+    if (post[0] === undefined) {
+      return res
+        .status(404)
+        .json({ message: "Not Found : post doesn't exist" });
+    }
+    let startItemNumber = await pagenation(page, PAGE_SIZE, post.length);
+    const postByKeyword = await postRepository.getPostByKeywordByPagenation(
+      keyword,
+      startItemNumber[1],
+      PAGE_SIZE
+    );
+    return res.status(200).json(postByKeyword);
+  }
+  // userId 검색 (keyword 검색어 미입력일 경우)
+  console.log("userId 검색");
+  const userId = req.query.userId;
+  const post = await postRepository.getPostByUserId(userId);
+  if (post[0] === undefined) {
+    return res.status(404).json({ message: "Not Found : post doesn't exist" });
+  }
+  let startItemNumber = await pagenation(page, PAGE_SIZE, post.length);
+  console.log(startItemNumber);
+  const postByUserId = await postRepository.getPostByUserIdByPagenation(
+    userId,
+    startItemNumber[1],
+    PAGE_SIZE
+  );
+  return res.status(200).json(postByUserId);
+}
+
+// 게시글 검색 (by 아파트이름)
+export async function searchPostByAptName(req, res) {
+  // 검색어 입력이 되지 않았을 때,
+  if (!req.query.aptName) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter your search term." });
+  }
+  const aptName = req.query.aptName;
+  // 키워드로 검색했을 때, 데이터가 있는지 확인
+  const post = await postRepository.getPostByKeyword(aptName);
+  // 데이터가 없다면, 오류 발생
+  if (post[0] === undefined) {
+    return res.status(404).json({ message: "Not Found : post doesn't exist" });
+  }
+  const postByAptName = await postRepository.getPostByKeywordByPagenation(
+    aptName,
+    0,
+    4
+  );
+  return res.status(200).json(postByAptName);
 }
 
 // 게시글 좋아요 및 좋아요 취소 기능

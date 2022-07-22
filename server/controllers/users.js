@@ -3,79 +3,6 @@ import bcrypt from "bcrypt";
 import { deletefileOfInvalidClient } from "../middlewares/multer.js";
 import { isEmptyArr } from "../utils/utils.js";
 
-// 로그인
-export async function signin(req, res, next) {
-  try {
-    const { user_id, user_pw } = req.body;
-    // user_id로 해당 회원이 존재하는지 확인
-    const user = await userRepository.findByUserid(user_id);
-    if (isEmptyArr(user)) {
-      const error = new Error("Bad Request : Invalid user or password");
-      error.name = "wrongIdError";
-      throw error;
-    }
-    // 사용자가 입력한 패스워드, db에 저장된 암호화된 패스워드를 비교
-    const checkPw = await bcrypt.compare(user_pw, user[0].user_pw);
-    if (!checkPw) {
-      const error = new Error("Bad Request : Invalid user or password");
-      error.name = "wrongPwError";
-      throw error;
-    }
-    // 암호일치 시 session 저장
-    req.session.index = user[0].id;
-    req.session.user_id = user[0].user_id;
-    req.session.nickname = user[0].nickname;
-    req.session.email = user[0].email;
-    req.session.phone_number = user[0].phone_number;
-    await req.session.save();
-
-    return res.status(200).json(`OK : ${req.session.nickname} 환영합니다.`);
-  } catch (error) {
-    if (error.name === "wrongIdError") {
-      return res
-        .status(400)
-        .json({ message: "Bad Request : Invalid user or password" });
-    }
-    if (error.name === "wrongPwError") {
-      return res
-        .status(400)
-        .json({ message: "Bad Request : Invalid user or password" });
-    }
-  }
-}
-
-//로그아웃
-export function logout(req, res) {
-  req.session.destroy();
-  if (!req.session) {
-    res.status(200).json(`OK : 로그아웃 되었습니다.`);
-  }
-}
-
-// 나의 정보 조회 (로그인 후 나의 정보 조회)
-export async function getUserById(req, res) {
-  try {
-    // id 변수에 로그인 시 저장 해놓은 유저 인덱스 번호 지정
-    // req.index_check : auth.js에서 생성된 값
-    // TODO : req 라고 되어 있어서 헷갈리는 부분이 있다. (서버에서 가져온 것인지 모른다.)
-    const id = req.index_check;
-    const user = await userRepository.getUserById(id);
-    // user가 존재하지 않을 때
-    if (user[0] === undefined) {
-      const error = new Error("Bad Request : Invalid user or password");
-      error.name = "notExistingUserError";
-      throw error;
-    }
-    return res.status(200).json(user);
-  } catch (error) {
-    if (error.name === "notExistingUserError") {
-      return res
-        .status(404)
-        .json({ message: `Not Found : user doesn't exist` });
-    }
-  }
-}
-
 // 회원 가입
 export async function makeUser(req, res) {
   try {
@@ -365,4 +292,75 @@ export async function deleteUser(req, res) {
   return res.status(204).json({ message: `No Content : user delete success` });
 }
 
-// util.js? 디렉토리 구조, 함수들만 모아놓는 폴더.
+// 나의 정보 조회 (로그인 후 나의 정보 조회)
+export async function getUserById(req, res) {
+  try {
+    // id 변수에 로그인 시 저장 해놓은 유저 인덱스 번호 지정
+    // req.index_check : auth.js에서 생성된 값
+    // TODO : req 라고 되어 있어서 헷갈리는 부분이 있다. (서버에서 가져온 것인지 모른다.)
+    const id = req.index_check;
+    const user = await userRepository.getUserById(id);
+    // user가 존재하지 않을 때
+    if (user[0] === undefined) {
+      const error = new Error("Bad Request : Invalid user or password");
+      error.name = "notExistingUserError";
+      throw error;
+    }
+    return res.status(200).json(user);
+  } catch (error) {
+    if (error.name === "notExistingUserError") {
+      return res
+        .status(404)
+        .json({ message: `Not Found : user doesn't exist` });
+    }
+  }
+}
+
+// 로그인
+export async function signin(req, res, next) {
+  try {
+    const { user_id, user_pw } = req.body;
+    // user_id로 해당 회원이 존재하는지 확인
+    const user = await userRepository.findByUserid(user_id);
+    if (isEmptyArr(user)) {
+      const error = new Error("Bad Request : Invalid user or password");
+      error.name = "wrongIdError";
+      throw error;
+    }
+    // 사용자가 입력한 패스워드, db에 저장된 암호화된 패스워드를 비교
+    const checkPw = await bcrypt.compare(user_pw, user[0].user_pw);
+    if (!checkPw) {
+      const error = new Error("Bad Request : Invalid user or password");
+      error.name = "wrongPwError";
+      throw error;
+    }
+    // 암호일치 시 session 저장
+    req.session.index = user[0].id;
+    req.session.user_id = user[0].user_id;
+    req.session.nickname = user[0].nickname;
+    req.session.email = user[0].email;
+    req.session.phone_number = user[0].phone_number;
+    await req.session.save();
+
+    return res.status(200).json(`OK : ${req.session.nickname} 환영합니다.`);
+  } catch (error) {
+    if (error.name === "wrongIdError") {
+      return res
+        .status(400)
+        .json({ message: "Bad Request : Invalid user or password" });
+    }
+    if (error.name === "wrongPwError") {
+      return res
+        .status(400)
+        .json({ message: "Bad Request : Invalid user or password" });
+    }
+  }
+}
+
+//로그아웃
+export function logout(req, res) {
+  req.session.destroy();
+  if (!req.session) {
+    res.status(200).json(`OK : 로그아웃 되었습니다.`);
+  }
+}

@@ -2,171 +2,6 @@ import * as commentRepository from "../models/comments.js";
 import { isEmptyArr, pagenation } from "../utils/utils.js";
 import PAGE_SIZE from "../utils/const.js";
 
-// 댓글 검색 (by 댓글 번호)
-export async function getCommentById(req, res) {
-  const id = req.params.id;
-  const comment = await commentRepository.getCommentById(id);
-  console.log(comment);
-  if (comment[0] === undefined) {
-    return res
-      .status(404)
-      .json({ message: `Not Found : comment doesn't exist` });
-  }
-  return res.status(200).json(comment);
-}
-
-//TODO : 댓글 검색에 대해서 , query를 하나 더 받아서, 아파트 정보 댓글 검색할지? 게시글 댓글 검색할지? 정할 수 있도록 만들기 그래서 댓글 검색 미들웨어를 하나로 줄이는 것이 좋을 것 같다.
-// 게시글에 달린 댓글 검색 (by 유저아이디 or 키워드)
-export async function searchPostComments(req, res) {
-  let page = parseInt(req.query.page);
-  // 검색어 입력이 되지 않았을 때,
-  if (!req.query.userId && !req.query.keyword) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request : Please enter your search term." });
-  }
-  // 검색어가 두 종류 전부 입력 되었을 때,
-  if (req.query.userId && req.query.keyword) {
-    return res.status(400).json({
-      message: "Bad Request : Please enter only one type of search term.",
-    });
-  }
-  // keyword 검색
-  if (!req.query.userId) {
-    console.log("키워드 검색 시작");
-    const keyword = req.query.keyword;
-    const comment = await commentRepository.getPostCommentsByKeyword(keyword);
-    console.log(comment.length);
-    if (comment[0] === undefined) {
-      return res
-        .status(404)
-        .json({ message: "Not Found : comment doesn't exist" });
-    }
-    let startItemNumber = await pagenation(page, PAGE_SIZE, comment.length);
-    console.log(startItemNumber);
-    const commentByKeyword =
-      await commentRepository.getPostCommentsByKeywordByPagenation(
-        keyword,
-        startItemNumber[1],
-        PAGE_SIZE
-      );
-    return res.status(200).json(commentByKeyword);
-  }
-
-  // userId 검색(keyword 검색어 미입력 시)
-  console.log("userId 검색");
-  const userId = req.query.userId;
-  const comment = await commentRepository.getPostCommentByUserId(userId);
-  if (comment[0] === undefined) {
-    return res
-      .status(404)
-      .json({ message: "Not Found : comment doesn't exist" });
-  }
-  let startItemNumber = await pagenation(page, PAGE_SIZE, comment.length);
-  const commentByUserId =
-    await commentRepository.getPostCommentByUserIdByPagenation(
-      userId,
-      startItemNumber[1],
-      PAGE_SIZE
-    );
-  return res.status(200).json(commentByUserId);
-}
-
-// 아파트 정보에 달린 댓글 검색 (by 유저아이디 or 키워드)
-export async function searchAptComments(req, res) {
-  let page = parseInt(req.query.page);
-  if (!page) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request : Please enter page number." });
-  }
-  // 검색어 입력이 되지 않았을 때,
-  if (!req.query.userId && !req.query.keyword) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request : Please enter your search term." });
-  }
-  // 검색어가 두 종류 전부 입력 되었을 때,
-  if (req.query.userId && req.query.keyword) {
-    return res.status(400).json({
-      message: "Bad Request : Please enter only one type of search term.",
-    });
-  }
-  // keyword 검색
-  if (!req.query.userId) {
-    console.log("키워드 검색 시작");
-    const keyword = req.query.keyword;
-    const comment = await commentRepository.getAptCommentsByKeyword(keyword);
-    console.log(comment.length);
-    if (comment[0] === undefined) {
-      return res
-        .status(404)
-        .json({ message: "Not Found : comment doesn't exist" });
-    }
-    let startItemNumber = await pagenation(page, PAGE_SIZE, comment.length);
-    console.log(startItemNumber);
-    const commentByKeyword =
-      await commentRepository.getAptCommentsByKeywordByPagenation(
-        keyword,
-        startItemNumber[1],
-        PAGE_SIZE
-      );
-    return res.status(200).json(commentByKeyword);
-  }
-
-  // userId 검색(keyword 검색어 미입력 시)
-  console.log("userId 검색");
-  const userId = req.query.userId;
-  const comment = await commentRepository.getAptCommentByUserId(userId);
-  if (comment[0] === undefined) {
-    return res
-      .status(404)
-      .json({ message: "Not Found : comment doesn't exist" });
-  }
-  let startItemNumber = await pagenation(page, pageSize, comment.length);
-  const commentByUserId =
-    await commentRepository.getAptCommentByUserIdByPagenation(
-      userId,
-      startItemNumber[1],
-      pageSize
-    );
-  return res.status(200).json(commentByUserId);
-}
-
-// 댓글 조회 (by 관련 게시글 인덱스 번호)
-export async function getCommentsByPostId(req, res) {
-  const postId = req.params.id;
-  if (isNaN(postId)) {
-    return res
-      .status(400)
-      .json({ message: `Bad Request : correct post number is required` });
-  }
-  const comment = await commentRepository.getCommentByPostId(postId);
-  if (comment[0] === undefined) {
-    return res
-      .status(404)
-      .json({ message: "Not Found : comment doesn't exist" });
-  }
-  return res.status(200).json(comment);
-}
-
-// 댓글 조회 (by 아파트 인덱스 번호)
-export async function getCommentsByAptId(req, res) {
-  const aptId = req.params.id;
-  if (isNaN(aptId)) {
-    return res
-      .status(400)
-      .json({ message: `Bad Request : correct post number is required` });
-  }
-  const comment = await commentRepository.getCommentByAptId(aptId);
-  if (comment[0] === undefined) {
-    return res
-      .status(404)
-      .json({ message: "Not Found : comment doesn't exist" });
-  }
-  return res.status(200).json(comment);
-}
-
 // 댓글 작성
 export async function makeComment(req, res) {
   req.body.user_id = req.index_check;
@@ -350,4 +185,169 @@ export async function deleteAptComment(req, res) {
   return res
     .status(204)
     .json({ message: `No Content : comment delete success` });
+}
+
+// 댓글 검색 (by 댓글 번호)
+export async function getCommentById(req, res) {
+  const id = req.params.id;
+  const comment = await commentRepository.getCommentById(id);
+  console.log(comment);
+  if (comment[0] === undefined) {
+    return res
+      .status(404)
+      .json({ message: `Not Found : comment doesn't exist` });
+  }
+  return res.status(200).json(comment);
+}
+
+//TODO : 댓글 검색에 대해서 , query를 하나 더 받아서, 아파트 정보 댓글 검색할지? 게시글 댓글 검색할지? 정할 수 있도록 만들기 그래서 댓글 검색 미들웨어를 하나로 줄이는 것이 좋을 것 같다.
+// 게시글에 달린 댓글 검색 (by 유저아이디 or 키워드)
+export async function searchPostComments(req, res) {
+  let page = parseInt(req.query.page);
+  // 검색어 입력이 되지 않았을 때,
+  if (!req.query.userId && !req.query.keyword) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter your search term." });
+  }
+  // 검색어가 두 종류 전부 입력 되었을 때,
+  if (req.query.userId && req.query.keyword) {
+    return res.status(400).json({
+      message: "Bad Request : Please enter only one type of search term.",
+    });
+  }
+  // keyword 검색
+  if (!req.query.userId) {
+    console.log("키워드 검색 시작");
+    const keyword = req.query.keyword;
+    const comment = await commentRepository.getPostCommentsByKeyword(keyword);
+    console.log(comment.length);
+    if (comment[0] === undefined) {
+      return res
+        .status(404)
+        .json({ message: "Not Found : comment doesn't exist" });
+    }
+    let startItemNumber = await pagenation(page, PAGE_SIZE, comment.length);
+    console.log(startItemNumber);
+    const commentByKeyword =
+      await commentRepository.getPostCommentsByKeywordByPagenation(
+        keyword,
+        startItemNumber[1],
+        PAGE_SIZE
+      );
+    return res.status(200).json(commentByKeyword);
+  }
+
+  // userId 검색(keyword 검색어 미입력 시)
+  console.log("userId 검색");
+  const userId = req.query.userId;
+  const comment = await commentRepository.getPostCommentByUserId(userId);
+  if (comment[0] === undefined) {
+    return res
+      .status(404)
+      .json({ message: "Not Found : comment doesn't exist" });
+  }
+  let startItemNumber = await pagenation(page, PAGE_SIZE, comment.length);
+  const commentByUserId =
+    await commentRepository.getPostCommentByUserIdByPagenation(
+      userId,
+      startItemNumber[1],
+      PAGE_SIZE
+    );
+  return res.status(200).json(commentByUserId);
+}
+
+// 아파트 정보에 달린 댓글 검색 (by 유저아이디 or 키워드)
+export async function searchAptComments(req, res) {
+  let page = parseInt(req.query.page);
+  if (!page) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter page number." });
+  }
+  // 검색어 입력이 되지 않았을 때,
+  if (!req.query.userId && !req.query.keyword) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter your search term." });
+  }
+  // 검색어가 두 종류 전부 입력 되었을 때,
+  if (req.query.userId && req.query.keyword) {
+    return res.status(400).json({
+      message: "Bad Request : Please enter only one type of search term.",
+    });
+  }
+  // keyword 검색
+  if (!req.query.userId) {
+    console.log("키워드 검색 시작");
+    const keyword = req.query.keyword;
+    const comment = await commentRepository.getAptCommentsByKeyword(keyword);
+    console.log(comment.length);
+    if (comment[0] === undefined) {
+      return res
+        .status(404)
+        .json({ message: "Not Found : comment doesn't exist" });
+    }
+    let startItemNumber = await pagenation(page, PAGE_SIZE, comment.length);
+    console.log(startItemNumber);
+    const commentByKeyword =
+      await commentRepository.getAptCommentsByKeywordByPagenation(
+        keyword,
+        startItemNumber[1],
+        PAGE_SIZE
+      );
+    return res.status(200).json(commentByKeyword);
+  }
+
+  // userId 검색(keyword 검색어 미입력 시)
+  console.log("userId 검색");
+  const userId = req.query.userId;
+  const comment = await commentRepository.getAptCommentByUserId(userId);
+  if (comment[0] === undefined) {
+    return res
+      .status(404)
+      .json({ message: "Not Found : comment doesn't exist" });
+  }
+  let startItemNumber = await pagenation(page, pageSize, comment.length);
+  const commentByUserId =
+    await commentRepository.getAptCommentByUserIdByPagenation(
+      userId,
+      startItemNumber[1],
+      pageSize
+    );
+  return res.status(200).json(commentByUserId);
+}
+
+// 댓글 조회 (by 관련 게시글 인덱스 번호)
+export async function getCommentsByPostId(req, res) {
+  const postId = req.params.id;
+  if (isNaN(postId)) {
+    return res
+      .status(400)
+      .json({ message: `Bad Request : correct post number is required` });
+  }
+  const comment = await commentRepository.getCommentByPostId(postId);
+  if (comment[0] === undefined) {
+    return res
+      .status(404)
+      .json({ message: "Not Found : comment doesn't exist" });
+  }
+  return res.status(200).json(comment);
+}
+
+// 댓글 조회 (by 아파트 인덱스 번호)
+export async function getCommentsByAptId(req, res) {
+  const aptId = req.params.id;
+  if (isNaN(aptId)) {
+    return res
+      .status(400)
+      .json({ message: `Bad Request : correct post number is required` });
+  }
+  const comment = await commentRepository.getCommentByAptId(aptId);
+  if (comment[0] === undefined) {
+    return res
+      .status(404)
+      .json({ message: "Not Found : comment doesn't exist" });
+  }
+  return res.status(200).json(comment);
 }

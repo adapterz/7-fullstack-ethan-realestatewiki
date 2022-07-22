@@ -1,9 +1,27 @@
 import { getSql } from "../middlewares/console.js";
 import pool from "../middlewares/pool.js";
 
+// 인기 게시글 가져오기(홈화면)
+export function getPopularPost() {
+  const sql = `SELECT post.id, author_id, user.user_id, title, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post LEFT JOIN user ON post.author_id = user.id ORDER BY recommended_number DESC LIMIT 0, 10`;
+  getSql(sql);
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
+    });
+  });
+}
+
 // 게시글 검색 (by 게시글 번호)
 export function getPostById(id) {
-  const sql = `SELECT author_id, title, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE id = ?`;
+  const sql = `SELECT post.id, post.author_id, user.nickname, user.image, title, content, DATE_FORMAT(post.datetime_updated, '%Y-%m-%d') as datetime_updated , views, recommended_number, use_enabled, comments_enabled FROM post LEFT JOIN user ON post.author_id = user.id WHERE post.id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -21,7 +39,8 @@ export function getPostById(id) {
 
 // 키워드가 포함된 게시글 검색
 export function getPostByKeyword(keyword) {
-  const sql = `SELECT id, title, content, DATE_FORMAT(datetime_created, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE title LIKE CONCAT( '%',?,'%') OR content LIKE CONCAT( '%',?,'%')`;
+  // TODO : 날짜 포멧 바꾸기
+  const sql = `SELECT post.id, author_id, title, content, DATE_FORMAT(datetime_created, '%y-%m-%d %H:%i:%s') as datetime_created, views, recommended_number, use_enabled, comments_enabled FROM post WHERE title LIKE CONCAT( '%',?,'%') OR content LIKE CONCAT( '%',?,'%')`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -39,8 +58,9 @@ export function getPostByKeyword(keyword) {
 
 // 키워드가 포함된 게시글 검색
 export function getPostByKeywordByPagenation(keyword, start, pageSize) {
-  const sql = `SELECT id, title, content, DATE_FORMAT(datetime_updated, '%Y-%M-%D %H:%i:%s'), views, recommended_number, use_enabled, comments_enabled FROM post WHERE title LIKE CONCAT( '%',?,'%') OR content LIKE CONCAT( '%',?,'%') ORDER BY datetime_updated DESC LIMIT ?, ?`;
-  getSql(sql);
+  // TODO : 날짜 포멧 바꾸기
+  const sql = `SELECT post.id, user.user_Id, post.author_id, title, content, DATE_FORMAT(post.datetime_updated, '%y-%m-%d %H:%i:%s') as datetime_updated, views, recommended_number, use_enabled, comments_enabled FROM post LEFT JOIN user ON post.author_id = user.id WHERE title LIKE CONCAT( '%',?,'%') OR content LIKE CONCAT( '%',?,'%') ORDER BY datetime_updated DESC LIMIT ?, ?`;
+  getSql(`getPost ${sql}`);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;

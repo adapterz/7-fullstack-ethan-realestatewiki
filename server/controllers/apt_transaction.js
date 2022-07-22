@@ -16,6 +16,16 @@ export async function getAptTranactionListByAptNameAndDong(req, res) {
   return res.status(200).send(apt);
 }
 
+export async function getResentPrice(req, res) {
+  const aptName = req.query.aptName;
+  const dong = req.query.dong;
+  const apt = await aptTransactionRepository.getRecentPrice(aptName, dong);
+  if (apt[0] === undefined) {
+    return res.status(404).json({ message: `Not Found : apt doesn't exist` });
+  }
+  return res.status(200).send(apt);
+}
+
 // 페이지 당 게시글수
 const contentPerPage = 20;
 // 화면 당 보여질 페이지네이션 버튼의 갯수??????????????????

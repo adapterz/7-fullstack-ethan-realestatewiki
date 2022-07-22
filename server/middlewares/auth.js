@@ -37,12 +37,6 @@ export const isAuth = async (req, res, next) => {
   req.nickname_check = nicknameInSesssion;
   req.email_check = emailInSesssion;
   req.phone_number_check = phone_numberInSesssion;
-  // req.body.user_id_check = userIdInSesssion;
-  // req.body.nickname_check = nicknameInSesssion;
-  // req.body.email_check = emailInSesssion;
-  // req.body.phone_number_check = phone_numberInSesssion;
-  // console.log(req);
-  // 다음 미들 웨어 함수로 넘긴다.
   next();
 };
 

@@ -13,4 +13,11 @@ router.get(
   aptTransactionController.getAptTranactionListByAptNameAndDong
 );
 
+router.get(
+  "/recent-price",
+  limiter,
+  getIpAndMoment,
+  aptTransactionController.getResentPrice
+);
+
 export default router;

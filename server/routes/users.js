@@ -41,6 +41,9 @@ const userInputOption = [
       "아이디는 5~15자의 영문소문자와 숫자의 조합으로 구성되어야 합니다."
     )
     .isAlphanumeric()
+    .withMessage(
+      "아이디는 5~15자의 영문소문자와 숫자의 조합으로 구성되어야 합니다."
+    )
     .isLength({ min: 5, max: 15 })
     .withMessage(
       "아이디는 5~15자의 영문소문자와 숫자의 조합으로 구성되어야 합니다."
@@ -59,11 +62,12 @@ const userInputOption = [
     .withMessage(
       "비밀번호는 8~15자의 영문 소문자, 숫자, 특수문자의 조합으로 구성되어야 합니다."
     ),
+  // TODO : 닉네임 유효성 검사 기준 재설정 필요.
   body("nickname")
     .trim()
     .isLength({ min: 5, max: 10 })
     .withMessage(
-      "닉네임은 3자 ~ 10자로 구성되어야 합니다.( 영문소문자, 대문자, 한글 사용 가능 )"
+      "닉네임은 5자 ~ 10자로 구성되어야 합니다.( 영문소문자, 대문자, 한글 사용 가능 )"
     ),
   body("email")
     .trim()

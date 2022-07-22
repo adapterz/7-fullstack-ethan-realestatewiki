@@ -44,6 +44,16 @@ const postContentOption = [
   validate,
 ];
 
+router.get("/popular", getIpAndMoment, postsController.getPopularPost);
+
+// 게시글 검색 (by 아파트이름)
+router.get(
+  "/by-aptname",
+  limiter,
+  getIpAndMoment,
+  postsController.searchPostByAptName
+);
+
 // 게시글 상세 조회 (by 게시글 인덱스 번호)
 router.get("/:id", limiter, getIpAndMoment, postsController.getPostById);
 
