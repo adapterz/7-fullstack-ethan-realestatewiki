@@ -1,6 +1,11 @@
 import express from "express";
 import http from "http";
 import https from "https";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import expressMysqlSession from "express-mysql-session";
@@ -104,6 +109,10 @@ try {
     )
   );
 } catch (err) {
+  console.log(chain);
+  console.log(key);
+  console.log(cert);
+  console.log(err);
   console.log("SSL 인증서가 없습니다. 로컬 환경 입니다.");
 }
 
