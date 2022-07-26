@@ -29,6 +29,16 @@ const morganFormat = process.env.NODE_ENV !== "production" ? "dev" : combined; /
 console.log(morganFormat);
 
 const app = express();
+
+app.use(function (req, res, next) {
+  console.log(req.secure);
+  if (!req.secure) {
+    res.redirect("https://" + "api.realestatewiki.kr" + req.url);
+  } else {
+    next();
+  }
+});
+
 app.use(cors(["https://realestatewiki.kr"]));
 app.use(morgan(morganFormat, { stream: logger.stream })); // morgan 로그 설정
 app.use(timeout("5s"));
@@ -122,7 +132,7 @@ const SSLoptions = {
   cert: cert,
 };
 
-if (options.cert != undefined) {
+if (SSLoptions.cert != undefined) {
   http.createServer(app).listen(80, () => {
     console.log(`server is listening ${process.env.PORT_NUM_PROD}`);
   });
