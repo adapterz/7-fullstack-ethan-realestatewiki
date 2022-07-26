@@ -1,4 +1,6 @@
 import express from "express";
+import http from "http";
+import https from "https";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import expressMysqlSession from "express-mysql-session";
@@ -22,7 +24,7 @@ const morganFormat = process.env.NODE_ENV !== "production" ? "dev" : combined; /
 console.log(morganFormat);
 
 const app = express();
-app.use(cors(["http://127.0.0.1:8080"]));
+app.use(cors(["https://realestatewiki.kr"]));
 app.use(morgan(morganFormat, { stream: logger.stream })); // morgan 로그 설정
 app.use(timeout("5s"));
 app.use(helmet());
@@ -67,18 +69,63 @@ app.use((error, req, res, next) => {
   res.status(500).send("Error, preparing now");
 });
 
-app.listen(config.PORT.portNumber, () => {
-  logger.info(console.log("server is listening"));
+console.log(`HTTPS 적용 여부 : ${process.env.HTTPS}`);
+
+let chain;
+let key;
+let cert;
+
+try {
+  chain = fs.readFileSync(
+    path.resolve(
+      "/etc",
+      "letsencrypt",
+      "live",
+      "api.realestatewiki.kr",
+      "fullchain.pem"
+    )
+  );
+  key = fs.readFileSync(
+    path.resolve(
+      "/etc",
+      "letsencrypt",
+      "live",
+      "api.realestatewiki.kr",
+      "privkey.pem"
+    )
+  );
+  cert = fs.readFileSync(
+    path.resolve(
+      "/etc",
+      "letsencrypt",
+      "live",
+      "api.realestatewiki.kr",
+      "cert.pem"
+    )
+  );
+} catch (err) {
+  console.log("SSL 인증서가 없습니다. 로컬 환경 입니다.");
+}
+
+const SSLoptions = {
+  ca: chain,
+  key: key,
+  cert: cert,
+};
+
+if (options.cert != undefined) {
+  http.createServer(app).listen(80, () => {
+    console.log(`server is listening ${process.env.PORT_NUM_PROD}`);
+  });
+  https.createServer(SSLoptions, app).listen(443, () => {
+    console.log(`server is listening ${process.env.PORT_NUM}`);
+  });
+}
+http.createServer(app).listen(process.env.PORT_NUM, () => {
+  console.log(`server is listening ${process.env.PORT_NUM}`);
 });
 
 function haltOnTimedout(req, res, next) {
   // req.timedout 시간 초과 발생 시 : true, 그 외 : false
   if (!req.timedout) next();
 }
-
-// app.use(function (req, res, next) {
-//   res.setTimeout(120000, function () {
-//     console.log("Request has timed out.");
-//   });
-// });
-// body-parser는 내장되어있음.  json 파싱하기 위해서 설정만 추가
