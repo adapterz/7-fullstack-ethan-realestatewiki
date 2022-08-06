@@ -1,15 +1,48 @@
 import * as aptInfoRepository from "../models/apt_information.js";
-import PAGE_SIZE from "../utils/const.js";
+// import PAGE_SIZE from "../utils/const.js";
+import "../utils/const.js";
 
 // 아파트 검색 (by 아파트 이름)
+export async function getPopularApt(req, res) {
+  const apt = await aptInfoRepository.getPopularApt();
+  console.log(apt);
+  if (apt[0] === undefined) {
+    return res.status(404).json({ message: "Not Found : apt doesn't exist" });
+  }
+  return res.status(200).json(apt);
+}
+
+// 아파트 검색 결과 전체 (by 아파트 이름)
+export async function getAptInfoCountByAptName(req, res) {
+  const aptName = req.query.aptName;
+  // 검색어 미입력시 에러
+  if (!req.query.aptName) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter your search term." });
+  }
+  const apt = await aptInfoRepository.getAptInfoByAptName(aptName);
+  // 검색하려는 데이터가 존재하지 않을 때 에러
+  console.log(apt);
+  if (apt[0] === undefined) {
+    console.log("데이터가 없습니다.");
+    return res.status(404).json({ message: `Not Found : apt doesn't exist` });
+  }
+  return res.status(200).send(apt);
+}
+
+// 아파트 검색 페이지네이션 (by 아파트 이름)
 export async function getAptInfoByAptName(req, res) {
+  const PAGE_SIZE = 10;
   let page = parseInt(req.query.page);
+  console.log(page);
   if (!page) {
     return res
       .status(400)
       .json({ message: "Bad Request : Please enter page number." });
   }
   const aptName = req.query.aptName;
+  console.log(`aptName : ${aptName}`);
   // 페이지 미입력시 에러
   if (!page || !PAGE_SIZE || isNaN(page) || isNaN(PAGE_SIZE)) {
     return res.status(400).json({
@@ -25,7 +58,9 @@ export async function getAptInfoByAptName(req, res) {
   }
   const apt = await aptInfoRepository.getAptInfoByAptName(aptName);
   // 검색하려는 데이터가 존재하지 않을 때 에러
+  console.log(apt);
   if (apt[0] === undefined) {
+    console.log("데이터가 없습니다.");
     return res.status(404).json({ message: `Not Found : apt doesn't exist` });
   }
   console.log(`총 데이터 갯수 : ${apt.length}`);

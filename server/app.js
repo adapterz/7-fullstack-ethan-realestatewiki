@@ -30,19 +30,50 @@ console.log(morganFormat);
 
 const app = express();
 
-app.use(function (req, res, next) {
-  console.log(req.secure);
-  if (!req.secure) {
-    res.redirect("https://" + "api.realestatewiki.kr" + req.url);
-  } else {
-    next();
-  }
+if (process.env.NODE_ENV == "production") {
+  app.use(function (req, res, next) {
+    console.log(req.secure);
+    if (!req.secure) {
+      res.redirect("https://" + "api.realestatewiki.kr" + req.url);
+    } else {
+      next();
+    }
+  });
+}
+app.use("/*", function (req, res, next) {
+  console.log("access");
+  res.header("Access-Control-Allow-Origin", "http://localhost:443");
+  // res.header("Access-Control-Allow-Origin", "https://localhost:443");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  next();
 });
 
+app.use(
+  cors({
+    origin: "http://localhost:443",
+    credentials: true,
+    methods: "PUT, GET, POST, DELETE, OPTIONS",
+  })
+);
+app.use(
+  cors({
+    origin: "https://localhost:443",
+    credentials: true,
+    methods: "PUT, GET, POST, DELETE, OPTIONS",
+  })
+);
+app.use(cors(["localhost:443"]));
 app.use(cors(["https://realestatewiki.kr"]));
 app.use(morgan(morganFormat, { stream: logger.stream })); // morgan 로그 설정
 app.use(timeout("5s"));
-app.use(helmet());
+// app.use(helmet());
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+app.use(express.json());
+app.use(cookieParser());
+
+app.use(express.static(path.join(__dirname, "..")));
+// app.use(express.static(`${__dirname}`));
+console.log(__dirname);
 // mysqlsessionstore 적용
 const MySQLStore = expressMysqlSession(session);
 const options = {
@@ -67,10 +98,14 @@ app.use(
     resave: false,
     // 세션이 저장되기 전에 uninitialized 상태로 미리 만들어서 저장
     saveUninitialized: false,
+    cookie: {
+      httpOnly: false,
+      maxAge: 30 * 60 * 1000,
+      secure: false,
+    },
   })
 );
-app.use(express.json());
-app.use(cookieParser());
+
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);
 app.use("/comments", commentsRouter);
@@ -139,10 +174,11 @@ if (SSLoptions.cert != undefined) {
   https.createServer(SSLoptions, app).listen(443, () => {
     console.log(`server is listening ${process.env.PORT_NUM}`);
   });
+} else {
+  http.createServer(app).listen(process.env.PORT_NUM, () => {
+    console.log(`server is listening ${process.env.PORT_NUM}`);
+  });
 }
-http.createServer(app).listen(process.env.PORT_NUM, () => {
-  console.log(`server is listening ${process.env.PORT_NUM}`);
-});
 
 function haltOnTimedout(req, res, next) {
   // req.timedout 시간 초과 발생 시 : true, 그 외 : false

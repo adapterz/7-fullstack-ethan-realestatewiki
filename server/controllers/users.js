@@ -78,6 +78,7 @@ export async function makeUser(req, res) {
     }
 
     userImage = `${req.file.destination}${req.file.filename}`;
+    console.log(`userImage = ${userImage}`);
     const checkUserId = await userRepository.duplicatescheckUserId(
       userData.user_id
     );
@@ -319,14 +320,21 @@ export async function getUserById(req, res) {
 // 로그인
 export async function signin(req, res, next) {
   try {
+    console.log(req.session.user_id);
+    if (req.session.user_id) {
+      console.log("세션 이미 존재");
+      return res
+        .status(403)
+        .json({ message: "Forbidden : you already logined" });
+    }
     const { user_id, user_pw } = req.body;
-    // user_id로 해당 회원이 존재하는지 확인
     const user = await userRepository.findByUserid(user_id);
     if (isEmptyArr(user)) {
       const error = new Error("Bad Request : Invalid user or password");
       error.name = "wrongIdError";
       throw error;
     }
+    console.log(`userId : ${user[0]}`);
     // 사용자가 입력한 패스워드, db에 저장된 암호화된 패스워드를 비교
     const checkPw = await bcrypt.compare(user_pw, user[0].user_pw);
     if (!checkPw) {
@@ -334,15 +342,20 @@ export async function signin(req, res, next) {
       error.name = "wrongPwError";
       throw error;
     }
+    console.log(`checkPw : ${checkPw}`);
     // 암호일치 시 session 저장
     req.session.index = user[0].id;
     req.session.user_id = user[0].user_id;
     req.session.nickname = user[0].nickname;
     req.session.email = user[0].email;
     req.session.phone_number = user[0].phone_number;
+    console.log(`req.session.index: ${req.session.index}`);
     await req.session.save();
-
-    return res.status(200).json(`OK : ${req.session.nickname} 환영합니다.`);
+    console.log("세션 저장 완료");
+    return res
+      .status(200)
+      .cookie("nickname", req.session.nickname, { maxAge: 30 * 60 * 1000 })
+      .json(`OK : ${req.session.nickname} 환영합니다.`);
   } catch (error) {
     if (error.name === "wrongIdError") {
       return res
@@ -363,4 +376,58 @@ export function logout(req, res) {
   if (!req.session) {
     res.status(200).json(`OK : 로그아웃 되었습니다.`);
   }
+}
+
+// 아이디 중복 확인
+export async function checkUserId(req, res) {
+  const { user_id } = req.body;
+  console.log(`user_id: ${user_id}`);
+  // user_id로 해당 회원이 존재하는지 확인
+  const user = await userRepository.duplicatescheckUserId(user_id);
+  console.log(user);
+  if (!isEmptyArr(user)) {
+    return res.status(409).json({ message: `Conflict : Duplicate id` });
+  }
+  return res.status(200).json({ message: `OK : usable id` });
+}
+
+// 닉네임 중복 확인
+export async function checkNickname(req, res) {
+  const { nickname } = req.body;
+  console.log(`nickname: ${nickname}`);
+  // nickname로 해당 회원이 존재하는지 확인
+  const user = await userRepository.duplicatescheckNickname(nickname);
+  console.log(user);
+  if (!isEmptyArr(user)) {
+    return res.status(409).json({ message: `Conflict : Duplicate nickname` });
+  }
+  return res.status(200).json({ message: `OK : usable id` });
+}
+
+// 핸드폰번호 중복 확인
+export async function checkPhoneNumber(req, res) {
+  const { phonenumber } = req.body;
+  console.log(`phonenumber: ${phonenumber}`);
+  // nickname로 해당 회원이 존재하는지 확인
+  const user = await userRepository.duplicatescheckPhoneNumber(phonenumber);
+  console.log(user);
+  if (!isEmptyArr(user)) {
+    return res
+      .status(409)
+      .json({ message: `Conflict : Duplicate phonenumber` });
+  }
+  return res.status(200).json({ message: `OK : usable phonenumber` });
+}
+
+// 이메일 중복 확인
+export async function checkEmail(req, res) {
+  const { email } = req.body;
+  console.log(`phonenumber: ${email}`);
+  // nickname로 해당 회원이 존재하는지 확인
+  const user = await userRepository.duplicatescheckEmail(email);
+  console.log(user);
+  if (!isEmptyArr(user)) {
+    return res.status(409).json({ message: `Conflict : Duplicate email` });
+  }
+  return res.status(200).json({ message: `OK : usable email` });
 }

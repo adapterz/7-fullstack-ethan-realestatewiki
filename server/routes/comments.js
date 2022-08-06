@@ -8,6 +8,13 @@ import limiter from "../middlewares/ratelimit.js";
 
 const router = express.Router();
 
+router.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://localhost:443");
+  res.header("Access-Control-Allow-Credentials", true);
+  res.setHeader("Set-Cookie", "key=value; HttpOnly; SameSite=None");
+  next();
+});
+
 // 댓글 작성 관련 유효성 검사 옵션
 const commentContentOption = [
   body("post_id")
@@ -33,6 +40,7 @@ const commentContentOption = [
 
 // 댓글 상세 조회 (by 댓글 인덱스 번호)
 router.get("/detail/:id", getIpAndMoment, commentsController.getCommentById);
+
 // 게시판 댓글 검색 (by 키워드 or 유저아이디)
 router.get(
   "/post-comments",
@@ -40,6 +48,7 @@ router.get(
   getIpAndMoment,
   commentsController.searchPostComments
 );
+
 // 아파트 정보 댓글 검색 (by 키워드 or 유저아이디)
 router.get(
   "/apt-comments",
@@ -47,20 +56,55 @@ router.get(
   getIpAndMoment,
   commentsController.searchAptComments
 );
+
+// 전체 댓글 개수 조회 (by 관련 게시글 인덱스 번호)
+router.get(
+  "/Countbypostid/:id",
+  // limiter,
+  commentsController.getCommentsCountByPostId
+);
+
+// 전체 댓글 개수 조회 (by 관련 아파트 인덱스 번호)
+router.get(
+  "/CountbyAptid/:id",
+  // limiter,
+  commentsController.getCommentsCountByAptId
+);
+
 // 댓글 검색 (by 관련 게시글 인덱스 번호)
 router.get(
   "/getbypostid/:id",
   // limiter,
   getIpAndMoment,
-  commentsController.getCommentsByPostId
+  commentsController.getCommentsByPostIdByPagenation
 );
+
 // 댓글 검색 (by 관련 아파트 인덱스 번호)
 router.get(
   "/getbyaptid/:id",
-  limiter,
+  // limiter,
   getIpAndMoment,
-  commentsController.getCommentsByAptId
+  commentsController.getCommentsByAptIdByPagenation
 );
+
+// 게시글 관련 댓글 검색 (by 유저 인덱스 번호)
+router.get(
+  "/getbyuserIndex/post-comment",
+  // limiter,
+  // getIpAndMoment,
+  isAuth,
+  commentsController.getPostCommentByUserIndex
+);
+
+// 아파트 관련 댓글 검색 (by 유저 인덱스 번호)
+router.get(
+  "/getbyuserIndex/apt-comment",
+  // limiter,
+  // getIpAndMoment,
+  isAuth,
+  commentsController.getAptCommentByUserIndex
+);
+
 // 댓글 작성
 router.post(
   "/",

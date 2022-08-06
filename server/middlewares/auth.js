@@ -3,7 +3,7 @@ import { isEmptyArr } from "../utils/utils.js";
 
 // 인증 여부 확인
 export const isAuth = async (req, res, next) => {
-  console.log(req.sessionID);
+  console.log(`req.sessionID : ${req.sessionID}`);
   // sessionID가 없을 때, 예외처리
   if (!req.sessionID) {
     return (

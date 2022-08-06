@@ -8,14 +8,14 @@ const router = express.Router();
 // 아파트 거래 내역 조회(by 아파트 이름, 법정동)
 router.get(
   "/",
-  limiter,
+  // limiter,
   getIpAndMoment,
   aptTransactionController.getAptTranactionListByAptNameAndDong
 );
 
 router.get(
   "/recent-price",
-  limiter,
+  // limiter,
   getIpAndMoment,
   aptTransactionController.getResentPrice
 );

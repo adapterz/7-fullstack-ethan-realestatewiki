@@ -19,7 +19,9 @@ switch (process.env.NODE_ENV) {
     break;
 }
 
-console.log(envPath);
+envPath = path.join(__dirname, "..", "..", ".env.dev");
+console.log(path.join(__dirname, "..", "..", ".env.dev"));
+console.log(`envPath : ${envPath}`);
 dotenv.config({ path: envPath });
 
 export const config = {

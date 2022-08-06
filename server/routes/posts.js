@@ -8,6 +8,13 @@ import limiter from "../middlewares/ratelimit.js";
 
 const router = express.Router();
 
+router.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://localhost:443");
+  res.header("Access-Control-Allow-Credentials", true);
+  res.setHeader("Set-Cookie", "key=value; HttpOnly; SameSite=None");
+  next();
+});
+
 // 게시글 콘텐츠 유효성 검사 옵션
 const postContentOption = [
   body("title")
@@ -44,12 +51,19 @@ const postContentOption = [
   validate,
 ];
 
+// 인기 게시글 검색
 router.get("/popular", getIpAndMoment, postsController.getPopularPost);
+
+// 전체 게시글 숫자 구하기
+router.get("/all", postsController.getAllPostCount);
+
+// 게시글 리스트 불러오기
+router.get("/lists", getIpAndMoment, postsController.getAllPost);
 
 // 게시글 검색 (by 아파트이름)
 router.get(
   "/by-aptname",
-  limiter,
+  // limiter,
   getIpAndMoment,
   postsController.searchPostByAptName
 );
@@ -59,6 +73,17 @@ router.get("/:id", limiter, getIpAndMoment, postsController.getPostById);
 
 // 게시글 검색 (by 키워드 or 유저아이디)
 router.get("/", limiter, getIpAndMoment, postsController.searchPost);
+
+// 게시글 검색 (by 유저인덱스)
+router.get(
+  "/user-post/data",
+  isAuth,
+  getIpAndMoment,
+  postsController.searchUserPost
+);
+
+// 게시글 개수 검색 (by 유저인덱스)
+router.get("/user-post/count", isAuth, postsController.searchUserPostCount);
 
 // 게시글 작성
 router.post(

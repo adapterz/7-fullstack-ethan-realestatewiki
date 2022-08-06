@@ -1,7 +1,9 @@
 import * as postRepository from "../models/posts.js";
+import * as commentRepository from "../models/comments.js";
 import * as likeRepository from "../models/likes.js";
 import { isEmptyArr, pagenation } from "../utils/utils.js";
 import PAGE_SIZE from "../utils/const.js";
+// import "../utils/const.js";
 
 // 게시글 작성
 export async function makePost(req, res) {
@@ -68,38 +70,74 @@ export async function updatePost(req, res) {
 
 // 게시글 삭제
 export async function deletePost(req, res) {
-  const id = req.params.id;
-  if (isNaN(id)) {
-    return res
-      .status(400)
-      .json({ message: `Bad Request : post number must be int` });
-  }
-  // 게시글의 id와 작성자의 index를 통해, 게시글이 해당 작성자의 것이 맞는지 확인
-  const postCheck = await postRepository.checkPostForUpdateAndDelete(
-    id,
-    req.index_check
-  );
-  // 게시글이 현 사용자가 쓴 글이 아니라면,
-  if (isEmptyArr(postCheck)) {
-    return res
-      .status(403)
-      .json({ message: `Fobidden : cannot delete other client's post` });
-  }
+  try {
+    const id = req.params.id;
+    if (isNaN(id)) {
+      return res
+        .status(400)
+        .json({ message: `Bad Request : post number must be int` });
+    }
+    // 게시글의 id와 작성자의 index를 통해, 게시글이 해당 작성자의 것이 맞는지 확인
+    const postCheck = await postRepository.checkPostForUpdateAndDelete(
+      id,
+      req.index_check
+    );
+    // 게시글이 현 사용자가 쓴 글이 아니라면,
+    if (isEmptyArr(postCheck)) {
+      return res
+        .status(403)
+        .json({ message: `Fobidden : cannot delete other client's post` });
+    }
+    await commentRepository.deleteTargetPostComment(id);
+    const post = await postRepository.deletePost(id);
+    if (post.affectedRows !== 1) {
+      return res.status(404).json({
+        message: `Not Found : cannot delete post. post doesn't exist.`,
+      });
+    }
 
-  const post = await postRepository.deletePost(id);
-  console.log(post);
-  if (post.affectedRows !== 1) {
     return res
-      .status(404)
-      .json({ message: `Not Found : cannot delete post. post doesn't exist.` });
+      .status(204)
+      .json({ message: `No Content : post delete success` });
+  } catch (e) {
+    console.log(e);
   }
-  return res.status(204).json({ message: `No Content : post delete success` });
+}
+
+// 총 게시물 수 구하기
+export async function getAllPostCount(req, res) {
+  console.log("getAllPostCount");
+  const post = await postRepository.getAllPostCount();
+  if (post[0] === undefined) {
+    return res.status(404).json({ message: "Not Found : post doesn't exist" });
+  }
+  return res.status(200).json(post);
+}
+
+// 게시글 리스트 호출
+export async function getAllPost(req, res) {
+  console.log("getAllPost");
+  let page = parseInt(req.query.page);
+  if (!page) {
+    page = 1;
+  }
+  const post = await postRepository.getAllPost();
+  // 데이터가 없다면, 오류 발생
+  if (post[0] === undefined) {
+    return res.status(404).json({ message: "Not Found : post doesn't exist" });
+  }
+  let startItemNumber = await pagenation(page, PAGE_SIZE, post.length);
+  const postByPagenation = await postRepository.getAllPostByPagenation(
+    startItemNumber[1],
+    PAGE_SIZE
+  );
+  return res.status(200).json(postByPagenation);
 }
 
 // 게시글 검색 (by 게시글 번호)
 export async function getPostById(req, res) {
+  console.log("getPostById");
   const id = req.params.id;
-
   if (isNaN(id)) {
     return res
       .status(400)
@@ -161,6 +199,57 @@ export async function getPopularPost(req, res) {
     return res.status(404).json({ message: "Not Found : post doesn't exist" });
   }
   return res.status(200).json(post);
+}
+
+// 게시글 검색 (by 유저인덱스)
+export async function searchUserPostCount(req, res) {
+  console.log("searchUserPostCount");
+  const id = req.index_check;
+  // 유저아이디 입력이 되지 않았을 때,
+  if (!id) {
+    return res
+      .status(401)
+      .json({ message: `Unauthorized : Login is required` });
+  }
+  // userId 검색 (keyword 검색어 미입력일 경우)
+  console.log("userIndex 검색");
+  // const userIndex = req.query.userIndex;
+  const post = await postRepository.getPostByUserIndexNumber(id);
+  if (post[0] === undefined) {
+    return res.status(404).json({ message: "Not Found : post doesn't exist" });
+  }
+  return res.status(200).json(post);
+}
+
+// 게시글 검색 (by 유저아이디)
+export async function searchUserPost(req, res) {
+  let page = parseInt(req.query.page);
+  if (!page) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter page number." });
+  }
+  // 유저아이디 입력이 되지 않았을 때,
+  if (!req.query.userId) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Please enter your user_id" });
+  }
+  // userId 검색 (keyword 검색어 미입력일 경우)
+  console.log("userId 검색");
+  const userId = req.query.userId;
+  const post = await postRepository.getPostByUserId(userId);
+  if (post[0] === undefined) {
+    return res.status(404).json({ message: "Not Found : post doesn't exist" });
+  }
+  let startItemNumber = await pagenation(page, PAGE_SIZE, post.length);
+  console.log(startItemNumber);
+  const postByUserId = await postRepository.getPostByUserIdByPagenation(
+    userId,
+    startItemNumber[1],
+    PAGE_SIZE
+  );
+  return res.status(200).json(postByUserId);
 }
 
 // 게시글 검색 (by 유저아이디 or 키워드)

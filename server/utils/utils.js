@@ -32,10 +32,4 @@ export async function pagenation(page, pageSize, allItemCount) {
   );
   startItemNumber = (page - 1) * pageSize;
   return [page, startItemNumber];
-
-  // console.log(`postLength : ${post.length}`);
-  // console.log(`keyword : ${keyword}`);
-  // console.log(`page : ${startItemNumber[0]}`);
-  // console.log(`pageSize : ${pageSize}`);
-  // console.log(`startItemNumber : ${startItemNumber[1]}`);
 }

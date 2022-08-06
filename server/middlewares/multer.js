@@ -1,6 +1,7 @@
 import multer from "multer";
 
 const fileFilter = (req, file, cb) => {
+  console.log("파일 업로드 시작");
   // 첨부된 파일의 mimetype이 다를 때 저장 X
   if (
     !(
@@ -13,6 +14,7 @@ const fileFilter = (req, file, cb) => {
     req.fileValidationError = "jpg, jpeg, png, gif 파일만 업로드 가능합니다.";
     return cb(null, false, req.fileValidationError);
   }
+  console.log("파일 업로드 완료");
   // mimetype이 올바를 때
   return cb(null, true);
 };

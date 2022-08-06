@@ -10,6 +10,13 @@ import limiter from "../middlewares/ratelimit.js";
 
 const router = express.Router();
 
+router.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://localhost:443");
+  res.header("Access-Control-Allow-Credentials", true);
+  res.setHeader("Set-Cookie", "key=value; HttpOnly; SameSite=None");
+  next();
+});
+
 // 비밀번호 유효성 검사 옵션
 const passwordOption = {
   // 최소 길이 8
@@ -111,6 +118,7 @@ router.get("/logout", getIpAndMoment, usersController.logout);
 
 // 유저 조회 (by 유저 인덱스 번호)
 router.get("/", limiter, getIpAndMoment, isAuth, usersController.getUserById);
+
 // 회원 가입
 router.post(
   "/",
@@ -121,6 +129,7 @@ router.post(
   userInputOption,
   usersController.makeUser
 );
+
 // 유저 정보 수정
 router.put(
   "/",
@@ -131,7 +140,13 @@ router.put(
   userInputOptionForUpdate,
   usersController.updateUser
 );
+
 // 유저 정보 삭제
 router.delete("/:id", getIpAndMoment, isAuth, usersController.deleteUser);
+
+router.post("/id-check", usersController.checkUserId);
+router.post("/nickname-check", usersController.checkNickname);
+router.post("/phonenumber-check", usersController.checkPhoneNumber);
+router.post("/email-check", usersController.checkEmail);
 
 export default router;
