@@ -40,30 +40,38 @@ if (process.env.NODE_ENV == "production") {
     }
   });
 }
-app.use("/*", function (req, res, next) {
-  console.log("access");
-  res.header("Access-Control-Allow-Origin", "http://localhost:443");
-  // res.header("Access-Control-Allow-Origin", "https://localhost:443");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With");
-  next();
-});
+// app.use("/*", function (req, res, next) {
+//   console.log("access");
+//   res.header("Access-Control-Allow-Origin", "http://localhost:443/");
+//   // res.header("Access-Control-Allow-Origin", "https://localhost:443");
+//   res.header("Access-Control-Allow-Headers", "X-Requested-With");
+//   next();
+// });
 
+// app.use(
+//   cors({
+//     origin: "localhost:443",
+//     credentials: true,
+//     methods: "PUT, GET, POST, DELETE, PUT",
+//   })
+// );
 app.use(
   cors({
-    origin: "http://localhost:443",
+    origin: "https://realestatewiki.kr",
+    // origin: "http://localhost:443",
     credentials: true,
-    methods: "PUT, GET, POST, DELETE, OPTIONS",
+    methods: "PUT, GET, POST, DELETE, PUT",
   })
 );
-app.use(
-  cors({
-    origin: "https://localhost:443",
-    credentials: true,
-    methods: "PUT, GET, POST, DELETE, OPTIONS",
-  })
-);
-app.use(cors(["localhost:443"]));
-app.use(cors(["https://realestatewiki.kr"]));
+// app.use(
+//   cors({
+//     origin: "https://localhost:443",
+//     credentials: true,
+//     methods: "PUT, GET, POST, DELETE, PUT",
+//   })
+// );
+// app.use(cors(["localhost:443"]));
+// app.use(cors(["https://realestatewiki.kr"]));
 app.use(morgan(morganFormat, { stream: logger.stream })); // morgan 로그 설정
 app.use(timeout("5s"));
 // app.use(helmet());

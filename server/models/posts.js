@@ -78,7 +78,7 @@ export function getPopularPost() {
 
 // 게시글 검색 (by 게시글 번호)
 export function getPostById(id) {
-  const sql = `SELECT post.id, post.author_id, user.nickname, user.image, title, content, DATE_FORMAT(post.datetime_updated, '%Y-%m-%d') as datetime_updated , views, recommended_number, use_enabled, comments_enabled FROM post LEFT JOIN user ON post.author_id = user.id WHERE post.id = ?`;
+  const sql = `SELECT post.id as post_index, post.id, post.author_id, user.user_id, user.nickname, user.image, title, content, DATE_FORMAT(post.datetime_updated, '%Y-%m-%d') as datetime_updated , views, recommended_number, use_enabled, comments_enabled FROM post LEFT JOIN user ON post.author_id = user.id WHERE post.id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {

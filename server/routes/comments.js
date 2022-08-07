@@ -9,9 +9,10 @@ import limiter from "../middlewares/ratelimit.js";
 const router = express.Router();
 
 router.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:443");
-  res.header("Access-Control-Allow-Credentials", true);
+  res.setHeader("Access-Control-Allow-Origin", "https://realestatewiki.kr");
+  res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Set-Cookie", "key=value; HttpOnly; SameSite=None");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   next();
 });
 
@@ -44,7 +45,7 @@ router.get("/detail/:id", getIpAndMoment, commentsController.getCommentById);
 // 게시판 댓글 검색 (by 키워드 or 유저아이디)
 router.get(
   "/post-comments",
-  limiter,
+  // limiter,
   getIpAndMoment,
   commentsController.searchPostComments
 );
@@ -52,7 +53,7 @@ router.get(
 // 아파트 정보 댓글 검색 (by 키워드 or 유저아이디)
 router.get(
   "/apt-comments",
-  limiter,
+  // limiter,
   getIpAndMoment,
   commentsController.searchAptComments
 );
@@ -123,7 +124,7 @@ router.put(
   commentsController.updatePostComment
 );
 
-// 아파트 정보 하단 댓글 삭제
+// 아파트 정보 하단 댓글 수정
 router.put(
   "/commentinaptinfo/:id",
   getIpAndMoment,
@@ -145,6 +146,13 @@ router.delete(
   getIpAndMoment,
   isAuth,
   commentsController.deleteAptComment
+);
+
+// 게시글 삭제 시, 하단에 있는 댓글 전체 삭제
+router.delete(
+  "/commentinpost/all-comment-in-post/:id",
+  getIpAndMoment,
+  commentsController.deleteAllPostComment
 );
 
 export default router;

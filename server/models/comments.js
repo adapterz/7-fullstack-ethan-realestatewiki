@@ -39,7 +39,7 @@ export function getCommentsCountByAptId(aptId) {
 
 // 댓글 검색 (by 관련 게시글 인덱스 번호)
 export function getCommentsByPostId(postId) {
-  const sql = `SELECT comment_post.id, comment_post.post_id, comment_post.user_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%y-%m-%d') as datetime_updated, user.user_id, user.image FROM comment_post left join user on comment_post.user_id = user.id WHERE comment_post.post_id = ?`;
+  const sql = `SELECT comment_post.id, comment_post.post_id, comment_post.user_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%y-%m-%d') as datetime_updated, user.id, user.user_id, user.image FROM comment_post left join user on comment_post.user_id = user.id WHERE comment_post.post_id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -57,7 +57,7 @@ export function getCommentsByPostId(postId) {
 
 // 게시글 관련 댓글 검색 (by 유저 인덱스 번호)
 export function getPostCommentsByUserIndex(id) {
-  const sql = `SELECT comment_post.id, comment_post.post_id, comment_post.user_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%y-%m-%d') as datetime_updated, user.user_id, user.image FROM comment_post left join user on comment_post.user_id = user.id WHERE comment_post.user_id = ?`;
+  const sql = `SELECT comment_post.id, comment_post.post_id, comment_post.user_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%y-%m-%d') as datetime_updated, user.id, user.user_id, user.image FROM comment_post left join user on comment_post.user_id = user.id WHERE comment_post.user_id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -75,7 +75,7 @@ export function getPostCommentsByUserIndex(id) {
 
 // 아파트 관련 댓글 검색 (by 유저 인덱스 번호)
 export function getAptCommentsByUserIndex(id) {
-  const sql = `SELECT comment_apt.id, comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%y-%m-%d') AS datetime_updated, apartment_information.name, user.image, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id left join apartment_information on comment_apt.apt_id = apartment_information.id WHERE comment_apt.user_id = ?`;
+  const sql = `SELECT comment_apt.id, comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%y-%m-%d') AS datetime_updated, apartment_information.name, user.id, user.image, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id left join apartment_information on comment_apt.apt_id = apartment_information.id WHERE comment_apt.user_id = ?`;
   getSql(`sql : ${sql}`);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -93,7 +93,7 @@ export function getAptCommentsByUserIndex(id) {
 
 // 댓글 검색 (by 관련 게시글 인덱스 번호) (by 페이지네이션)
 export function getCommentsByPostIdByPagenation(id, start, pageSize) {
-  const sql = `SELECT comment_post.id, comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%y-%m-%d') as datetime_updated, user.user_id, user.image FROM comment_post left join user on comment_post.user_id = user.id WHERE comment_post.post_id = ? ORDER BY comment_post.datetime_updated DESC LIMIT ?, ?`;
+  const sql = `SELECT comment_post.id, comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%y-%m-%d') as datetime_updated, user.id as user_index, user.user_id, user.image FROM comment_post left join user on comment_post.user_id = user.id WHERE comment_post.post_id = ? ORDER BY comment_post.datetime_updated DESC LIMIT ?, ?`;
   getSql(`getComment ${sql}`);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -111,7 +111,7 @@ export function getCommentsByPostIdByPagenation(id, start, pageSize) {
 
 // 댓글 검색 (by 관련 아파트 인덱스 번호)
 export function getCommentsByAptId(aptId) {
-  const sql = `SELECT comment_apt.id, apartment_information.name, comment_apt.user_id, user.image, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%y-%m-%d') AS datetime_updated, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id left join apartment_information on comment_apt.apt_id = apartment_information.id WHERE apt_id = ?`;
+  const sql = `SELECT comment_apt.id, apartment_information.name, comment_apt.user_id, user.image, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%y-%m-%d') AS datetime_updated, user.id, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id left join apartment_information on comment_apt.apt_id = apartment_information.id WHERE apt_id = ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -129,7 +129,7 @@ export function getCommentsByAptId(aptId) {
 
 // 댓글 검색 (by 관련 아파트 인덱스 번호) (by pagination)
 export function getCommentsByAptIdByPagenation(id, start, pageSize) {
-  const sql = `SELECT comment_apt.id, apartment_information.name, comment_apt.user_id, user.image, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%y-%m-%d') AS datetime_updated, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id left join apartment_information on comment_apt.apt_id = apartment_information.id WHERE apt_id = ? ORDER BY comment_apt.datetime_updated DESC LIMIT ?, ?`;
+  const sql = `SELECT comment_apt.id, apartment_information.name, comment_apt.user_id, user.image, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%y-%m-%d') AS datetime_updated, user.id, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id left join apartment_information on comment_apt.apt_id = apartment_information.id WHERE apt_id = ? ORDER BY comment_apt.datetime_updated DESC LIMIT ?, ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -182,7 +182,7 @@ export function getAptCommentById(id) {
 
 // 게시글에 달린 댓글 검색 (by 키워드)
 export function getPostCommentsByKeyword(keyword) {
-  const sql = `SELECT comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_post left join user on comment_post.user_id = user.id WHERE content LIKE CONCAT( '%',?,'%')`;
+  const sql = `SELECT comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.id, user.user_id FROM comment_post left join user on comment_post.user_id = user.id WHERE content LIKE CONCAT( '%',?,'%')`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -200,7 +200,7 @@ export function getPostCommentsByKeyword(keyword) {
 
 // 게시글에 달린 댓글 검색 (by 키워드, 페이지네이션)
 export function getPostCommentsByKeywordByPagenation(keyword, start, pageSize) {
-  const sql = `SELECT comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_post left join user on comment_post.user_id = user.id WHERE content LIKE CONCAT( '%',?,'%') ORDER BY comment_post.datetime_updated DESC LIMIT ?, ?`;
+  const sql = `SELECT comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.id, user.user_id FROM comment_post left join user on comment_post.user_id = user.id WHERE content LIKE CONCAT( '%',?,'%') ORDER BY comment_post.datetime_updated DESC LIMIT ?, ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -222,7 +222,7 @@ export function getPostCommentsByKeywordByPagenation(keyword, start, pageSize) {
 
 // 댓글 검색 (by 유저아이디)
 export function getPostCommentByUserId(userId) {
-  const sql = `select comment_post.id, comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id from comment_post inner join user on comment_post.user_id = user.id where user.user_id LIKE CONCAT( '%',?,'%') ORDER BY comment_post.datetime_updated`;
+  const sql = `select comment_post.id, comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.id, user.user_id from comment_post inner join user on comment_post.user_id = user.id where user.user_id LIKE CONCAT( '%',?,'%') ORDER BY comment_post.datetime_updated`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -240,7 +240,7 @@ export function getPostCommentByUserId(userId) {
 
 // 댓글 검색 (by 유저아이디)
 export function getPostCommentByUserIdByPagenation(userId, start, pageSize) {
-  const sql = `select comment_post.id, comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id from comment_post inner join user on comment_post.user_id = user.id where user.user_id LIKE CONCAT( '%',?,'%') ORDER BY comment_post.datetime_updated LIMIT ?, ?`;
+  const sql = `select comment_post.id, comment_post.user_id, comment_post.post_id, comment_post.content, DATE_FORMAT(comment_post.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.id, user.user_id from comment_post inner join user on comment_post.user_id = user.id where user.user_id LIKE CONCAT( '%',?,'%') ORDER BY comment_post.datetime_updated LIMIT ?, ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -262,7 +262,7 @@ export function getPostCommentByUserIdByPagenation(userId, start, pageSize) {
 
 // 게시글에 달린 댓글 검색 (by 키워드)
 export function getAptCommentsByKeyword(keyword) {
-  const sql = `SELECT comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id WHERE content LIKE CONCAT( '%',?,'%')`;
+  const sql = `SELECT comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.id, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id WHERE content LIKE CONCAT( '%',?,'%')`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -280,7 +280,7 @@ export function getAptCommentsByKeyword(keyword) {
 
 // 게시글에 달린 댓글 검색 (by 키워드, 페이지네이션)
 export function getAptCommentsByKeywordByPagenation(keyword, start, pageSize) {
-  const sql = `SELECT comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id WHERE content LIKE CONCAT( '%',?,'%') ORDER BY comment_apt.datetime_updated DESC LIMIT ?, ?`;
+  const sql = `SELECT comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.id, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id WHERE content LIKE CONCAT( '%',?,'%') ORDER BY comment_apt.datetime_updated DESC LIMIT ?, ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -302,7 +302,7 @@ export function getAptCommentsByKeywordByPagenation(keyword, start, pageSize) {
 
 // 댓글 검색 (by 유저아이디)
 export function getAptCommentByUserId(userId) {
-  const sql = `select comment_apt.id, comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id from comment_apt inner join user on comment_apt.user_id = user.id where user.user_id LIKE CONCAT( '%',?,'%') ORDER BY comment_apt.datetime_updated`;
+  const sql = `select comment_apt.id, comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.id, user.user_id from comment_apt inner join user on comment_apt.user_id = user.id where user.user_id LIKE CONCAT( '%',?,'%') ORDER BY comment_apt.datetime_updated`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
@@ -320,7 +320,7 @@ export function getAptCommentByUserId(userId) {
 
 // 댓글 검색 (by 유저아이디)
 export function getAptCommentByUserIdByPagenation(userId, start, pageSize) {
-  const sql = `select comment_apt.id, comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'), user.user_id from comment_apt inner join user on comment_apt.user_id = user.id where user.user_id LIKE CONCAT( '%',?,'%') ORDER BY comment_apt.datetime_updated LIMIT ?, ?`;
+  const sql = `select comment_apt.id, comment_apt.user_id, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%Y-%M-%D %H:%i:%s'),  user.id, user.user_id from comment_apt inner join user on comment_apt.user_id = user.id where user.user_id LIKE CONCAT( '%',?,'%') ORDER BY comment_apt.datetime_updated LIMIT ?, ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {

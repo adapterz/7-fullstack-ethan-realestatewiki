@@ -9,7 +9,7 @@ import limiter from "../middlewares/ratelimit.js";
 const router = express.Router();
 
 router.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:443");
+  res.header("Access-Control-Allow-Origin", "https://realestatewiki.kr");
   res.header("Access-Control-Allow-Credentials", true);
   res.setHeader("Set-Cookie", "key=value; HttpOnly; SameSite=None");
   next();
@@ -69,10 +69,10 @@ router.get(
 );
 
 // 게시글 상세 조회 (by 게시글 인덱스 번호)
-router.get("/:id", limiter, getIpAndMoment, postsController.getPostById);
+router.get("/:id", getIpAndMoment, postsController.getPostById);
 
 // 게시글 검색 (by 키워드 or 유저아이디)
-router.get("/", limiter, getIpAndMoment, postsController.searchPost);
+router.get("/", getIpAndMoment, postsController.searchPost);
 
 // 게시글 검색 (by 유저인덱스)
 router.get(

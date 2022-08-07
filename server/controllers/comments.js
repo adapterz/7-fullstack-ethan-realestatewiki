@@ -193,6 +193,30 @@ export async function deleteAptComment(req, res) {
     .json({ message: `No Content : comment delete success` });
 }
 
+// 게시글 삭제 시, 하단에 있는 댓글 전체 삭제
+export async function deleteAllPostComment(req, res) {
+  const postId = req.params.id;
+  // 삭제 요청한 게시글 번호가 숫자가 아니라면,
+  if (isNaN(postId)) {
+    return res
+      .status(400)
+      .json({ message: `Bad Request : correct post number is required` });
+  }
+  const checkComment = await commentRepository.getCommentsByPostId(postId);
+  console.log(checkComment);
+  // console.log(checkComment[0]["id"]);
+  console.log(`checkComment.length: ${checkComment.length}`);
+  for (let i = 0; i < checkComment.length; i++) {
+    const deleteComment = await commentRepository.deletePostComment(
+      checkComment[i]["id"]
+    );
+    console.log(deleteComment);
+  }
+  return res
+    .status(200)
+    .json({ message: `OK : delete success (post comments)` });
+}
+
 // 댓글 검색 (by 댓글 번호)
 export async function getCommentById(req, res) {
   const id = req.params.id;
