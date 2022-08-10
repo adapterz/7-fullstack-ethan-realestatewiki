@@ -10,17 +10,17 @@ let envPath;
 switch (process.env.NODE_ENV) {
   // NODE_ENV 값이 production일 때
   case "production":
+    console.log("env : production");
     envPath = path.join(__dirname, "..", "..", ".env.prod");
     break;
 
   // NODE_ENV 값이 development일 때
   case "development":
+    console.log("env : development");
     envPath = path.join(__dirname, "..", "..", ".env.dev");
     break;
 }
 
-envPath = path.join(__dirname, "..", "..", ".env.dev");
-console.log(path.join(__dirname, "..", "..", ".env.dev"));
 console.log(`envPath : ${envPath}`);
 dotenv.config({ path: envPath });
 
@@ -39,5 +39,9 @@ export const config = {
   },
   SESSION: {
     secretKey: process.env.SESSION_SECRETKEY,
+  },
+  URL: {
+    frontendUrl: process.env.URL_FRONTEND,
+    backendUrl: process.env.URL_BACKEND,
   },
 };

@@ -352,11 +352,19 @@ export async function signin(req, res, next) {
     console.log(`req.session.index: ${req.session.index}`);
     await req.session.save();
     console.log("세션 저장 완료");
-    return res
-      .status(200)
-      .cookie("nickname", req.session.nickname, { maxAge: 30 * 60 * 1000 })
-      .cookie("user_id", req.session.user_id, { maxAge: 30 * 60 * 1000 })
-      .json(`OK : ${req.session.user_id} 환영합니다.`);
+    const forCookie = [
+      { Loginsession: req.sessionID },
+      { user_id: req.session.user_id },
+      { nickname: req.session.nickname },
+    ];
+    return (
+      res
+        .status(200)
+        // .cookie("nickname", req.session.nickname, { maxAge: 30 * 60 * 1000 })
+        // .cookie("user_id", req.session.user_id, { maxAge: 30 * 60 * 1000 })
+        .send(forCookie)
+    );
+    // .json(`OK : ${req.session.user_id} 환영합니다.`);
   } catch (error) {
     if (error.name === "wrongIdError") {
       return res

@@ -32,9 +32,9 @@ const app = express();
 
 if (process.env.NODE_ENV == "production") {
   app.use(function (req, res, next) {
-    console.log(req.secure);
+    console.log(`req.secure: ${req.secure}`);
     if (!req.secure) {
-      res.redirect("https://" + "api.realestatewiki.kr" + req.url);
+      res.redirect(config.URL.backendUrl + req.url);
     } else {
       next();
     }
@@ -47,41 +47,22 @@ if (process.env.NODE_ENV == "production") {
 //   res.header("Access-Control-Allow-Headers", "X-Requested-With");
 //   next();
 // });
-
-// app.use(
-//   cors({
-//     origin: "localhost:443",
-//     credentials: true,
-//     methods: "PUT, GET, POST, DELETE, PUT",
-//   })
-// );
+const whitelist = [config.URL.frontendUrl];
 app.use(
   cors({
-    origin: "https://realestatewiki.kr",
-    // origin: "http://localhost:443",
+    origin: whitelist,
+    // origin: config.URL.frontendUrl,
     credentials: true,
     methods: "PUT, GET, POST, DELETE, PUT",
   })
 );
-// app.use(
-//   cors({
-//     origin: "https://localhost:443",
-//     credentials: true,
-//     methods: "PUT, GET, POST, DELETE, PUT",
-//   })
-// );
-// app.use(cors(["localhost:443"]));
-// app.use(cors(["https://realestatewiki.kr"]));
+
 app.use(morgan(morganFormat, { stream: logger.stream })); // morgan 로그 설정
 app.use(timeout("5s"));
-// app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(express.json());
 app.use(cookieParser());
-
 app.use(express.static(path.join(__dirname, "..")));
-// app.use(express.static(`${__dirname}`));
-console.log(__dirname);
 // mysqlsessionstore 적용
 const MySQLStore = expressMysqlSession(session);
 const options = {
@@ -162,10 +143,6 @@ try {
     )
   );
 } catch (err) {
-  console.log(chain);
-  console.log(key);
-  console.log(cert);
-  console.log(err);
   console.log("SSL 인증서가 없습니다. 로컬 환경 입니다.");
 }
 
@@ -176,10 +153,10 @@ const SSLoptions = {
 };
 
 if (SSLoptions.cert != undefined) {
-  http.createServer(app).listen(80, () => {
+  http.createServer(app).listen(PORT_NUM_PROD, () => {
     console.log(`server is listening ${process.env.PORT_NUM_PROD}`);
   });
-  https.createServer(SSLoptions, app).listen(443, () => {
+  https.createServer(SSLoptions, app).listen(PORT_NUM, () => {
     console.log(`server is listening ${process.env.PORT_NUM}`);
   });
 } else {

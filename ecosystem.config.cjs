@@ -5,8 +5,8 @@ module.exports = {
       name: "rewiki-backend-server",
       script: "server/app.js",
       watch: true,
-      ignore_watch: "server/server/logs",
-      env: {
+      ignore_watch: "server/logs server/uploads",
+      env_development: {
         NODE_ENV: "development",
       },
       env_production: {
