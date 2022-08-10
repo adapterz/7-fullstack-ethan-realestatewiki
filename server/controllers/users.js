@@ -383,7 +383,10 @@ export async function signin(req, res, next) {
 export function logout(req, res) {
   req.session.destroy();
   if (!req.session) {
-    res.status(200).json(`OK : 로그아웃 되었습니다.`);
+    res
+      .cookie("LoginSession", "", { maxAge: 0 })
+      .status(200)
+      .json(`OK : 로그아웃 되었습니다.`);
   }
 }
 

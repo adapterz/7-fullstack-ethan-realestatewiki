@@ -153,10 +153,10 @@ const SSLoptions = {
 };
 
 if (SSLoptions.cert != undefined) {
-  http.createServer(app).listen(PORT_NUM_PROD, () => {
+  http.createServer(app).listen(process.env.PORT_NUM_PROD, () => {
     console.log(`server is listening ${process.env.PORT_NUM_PROD}`);
   });
-  https.createServer(SSLoptions, app).listen(PORT_NUM, () => {
+  https.createServer(SSLoptions, app).listen(process.env.PORT_NUM, () => {
     console.log(`server is listening ${process.env.PORT_NUM}`);
   });
 } else {
