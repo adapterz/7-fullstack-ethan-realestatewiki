@@ -129,7 +129,7 @@ export function getCommentsByAptId(aptId) {
 
 // 댓글 검색 (by 관련 아파트 인덱스 번호) (by pagination)
 export function getCommentsByAptIdByPagenation(id, start, pageSize) {
-  const sql = `SELECT comment_apt.id, apartment_information.name, comment_apt.user_id, user.image, comment_apt.apt_id, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%y-%m-%d') AS datetime_updated, user.id, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id left join apartment_information on comment_apt.apt_id = apartment_information.id WHERE apt_id = ? ORDER BY comment_apt.datetime_updated DESC LIMIT ?, ?`;
+  const sql = `SELECT comment_apt.id as comment_index, apartment_information.name, comment_apt.user_id, user.image, comment_apt.apt_id as apt_index, comment_apt.content, DATE_FORMAT(comment_apt.datetime_updated, '%y-%m-%d') AS datetime_updated, user.id as user_index, user.user_id FROM comment_apt left join user on comment_apt.user_id = user.id left join apartment_information on comment_apt.apt_id = apartment_information.id WHERE apt_id = ? ORDER BY comment_apt.datetime_updated DESC LIMIT ?, ?`;
   getSql(sql);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {

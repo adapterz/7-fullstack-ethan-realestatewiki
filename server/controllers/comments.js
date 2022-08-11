@@ -168,7 +168,7 @@ export async function deleteAptComment(req, res) {
       .status(400)
       .json({ message: `Bad Request : correct comment number is required` });
   }
-  const checkComment = await commentRepository.getPostCommentById(id);
+  const checkComment = await commentRepository.getAptCommentById(id);
   // 삭제 요청한 댓글이 없다면,
   if (isEmptyArr(checkComment)) {
     return res

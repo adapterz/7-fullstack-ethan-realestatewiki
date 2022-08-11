@@ -42,7 +42,7 @@ export function getAllPost() {
 // 키워드가 포함된 게시글 검색
 export function getAllPostByPagenation(start, pageSize) {
   // TODO : 날짜 포멧 바꾸기
-  const sql = `SELECT post.id, user.user_Id, post.author_id, title, content, DATE_FORMAT(post.datetime_updated, '%y-%m-%d') as datetime_updated, views, recommended_number, use_enabled, comments_enabled, comments_count FROM post LEFT JOIN user ON post.author_id = user.id ORDER BY datetime_updated DESC LIMIT ?, ?`;
+  const sql = `SELECT post.id, user.user_Id, post.author_id, title, content, DATE_FORMAT(post.datetime_updated, '%y-%m-%d') as datetime_updated, views, recommended_number, use_enabled, comments_enabled, comments_count FROM post LEFT JOIN user ON post.author_id = user.id ORDER BY post.datetime_updated DESC LIMIT ?, ?`;
   getSql(`getPost ${sql}`);
   return new Promise((resolve, reject) => {
     pool.getConnection(function (err, connection) {
