@@ -272,6 +272,25 @@ export function deletePost(id) {
   });
 }
 
+// 게시글 삭제
+export function deletePostByUserId(id) {
+  console.log(id);
+  const sql = `DELETE FROM post WHERE author_id = ?`;
+  getSql(sql);
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, id, function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
+    });
+  });
+}
+
 // 게시글 좋아요
 export function likePost(postId) {
   const sql = `UPDATE post SET recommended_number = post.recommended_number + 1 where id = ?`;

@@ -102,6 +102,42 @@ export function updateUser(id, user, userImage) {
   });
 }
 
+// 유저 비밀번호 수정
+export function updateUserPw(id, new_user_pw) {
+  const sql = `UPDATE user SET user_pw = ? WHERE id = ? `;
+  getSql(sql);
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, [new_user_pw, id], function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
+    });
+  });
+}
+
+// 유저 이미지 수정
+export function updateUserImage(id, image) {
+  const sql = `UPDATE user SET image = ? WHERE id = ? `;
+  getSql(sql);
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, [image, id], function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
+    });
+  });
+}
+
 // 유저 정보 삭제
 export function deleteUser(id) {
   const sql = `delete from user where id= ?`;

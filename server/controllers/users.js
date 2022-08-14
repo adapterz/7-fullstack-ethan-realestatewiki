@@ -1,4 +1,7 @@
 import * as userRepository from "../models/users.js";
+import * as commentRepository from "../models/comments.js";
+import * as postRepository from "../models/posts.js";
+import * as sessionRepository from "../models/session.js";
 import bcrypt from "bcrypt";
 import { deletefileOfInvalidClient } from "../middlewares/multer.js";
 import { isEmptyArr } from "../utils/utils.js";
@@ -13,6 +16,7 @@ export async function makeUser(req, res) {
       throw error;
     }
     const userData = req.body;
+    console.log(userData);
     let userImage = null;
     const saltRound = 10;
     userData.user_pw = await bcrypt.hash(userData.user_pw, saltRound);
@@ -62,7 +66,8 @@ export async function makeUser(req, res) {
       }
       //TODO null인데 왜 넘겨?
       // const user = await userRepository.makeUser(userData, userImage);
-      await userRepository.makeUser(userData);
+      userImage = "server/basic_profile.jpg";
+      await userRepository.makeUser(userData, userImage);
       return res.status(201).json({ message: `Created : signup success` });
     }
 
@@ -144,6 +149,7 @@ export async function makeUser(req, res) {
 // 유저 정보 수정
 // XXX 변경값을 동일하게 입력시 오류 발생, 유저가 원래와 동일한 회원정보를 입력할 수도 있다. 체크할 것.
 export async function updateUser(req, res) {
+  console.log("updateUser 컨트롤러 실행");
   const id = req.index_check;
   const userData = req.body;
   let userImage = null;
@@ -282,6 +288,9 @@ export async function deleteUser(req, res) {
       .status(400)
       .json({ message: `Bad Request : correct user number is required` });
   }
+  await commentRepository.deleteAptCommentByUserId(id);
+  await commentRepository.deletePostCommentByUserId(id);
+  await postRepository.deletePostByUserId(id);
   const user = await userRepository.deleteUser(id);
   console.log(user);
   // 영향을 받는 행이 없을 때,
@@ -442,4 +451,97 @@ export async function checkEmail(req, res) {
     return res.status(409).json({ message: `Conflict : Duplicate email` });
   }
   return res.status(200).json({ message: `OK : usable email` });
+}
+
+// 비밀번호 일치 확인
+export async function checkPassword(req, res) {
+  console.log(req.session.user_id);
+  if (!req.session.user_id) {
+    return res.status(403).json({ message: "Forbidden : login is required" });
+  }
+  const { password } = req.body;
+  console.log(`password: ${password}`);
+  const user = await userRepository.findByUserid(req.session.user_id);
+  console.log(`userPw : ${user[0].user_pw}`);
+  // 사용자가 입력한 패스워드, db에 저장된 암호화된 패스워드를 비교
+  const checkPw = await bcrypt.compare(user_pw, user[0].user_pw);
+  if (!checkPw) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : password is not matched" });
+  }
+  return res.status(204);
+}
+
+// 유저 비밀번호 수정
+export async function updateUserPw(req, res) {
+  console.log("updateUserPw 컨트롤러 실행");
+  console.log(`req.index_check: ${req.index_check}`);
+  console.log(`req.user_id: ${req.user_id_check}`);
+  if (req.index_check == undefined) {
+    return res.status(403).json({ message: "Forbidden : Login is required" });
+  }
+  const userPwData = req.body;
+  console.log(userPwData.user_pw);
+  console.log(userPwData.new_user_pw);
+
+  const user = await userRepository.findByUserid(req.user_id_check);
+  if (isEmptyArr(user)) {
+    return res
+      .status(500)
+      .json({ message: "Server Error : user does not exist" });
+  }
+  console.log(`userPw : ${user[0].user_pw}`);
+  const checkPw = await bcrypt.compare(userPwData.user_pw, user[0].user_pw);
+  if (!checkPw) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request : Invalid user or password" });
+  }
+  console.log(`checkPw : ${checkPw}`);
+  const saltRound = 10;
+  const new_user_pw = await bcrypt.hash(userPwData.new_user_pw, saltRound);
+  console.log(new_user_pw);
+
+  const updateResponse = await userRepository.updateUserPw(
+    req.index_check,
+    new_user_pw
+  );
+  console.log(updateResponse);
+  return res.status(201).json({ message: `Created : update success` });
+}
+
+export async function getUserInfo(req, res) {
+  console.log(req.sessionID);
+  if (!req.sessionID) {
+    return (
+      res
+        // 400 서버가 클라이언트 오류(예: 잘못된 요청 구문, 유효하지 않은 요청 메시지 프레이밍,
+        // 또는 변조된 요청 라우팅) 를 감지해 요청을 처리할 수 없거나, 하지 않는다는 것을 의미합니다.
+        // 401 클라이언트가 인증되지 않았거나, 유효한 인증 정보가 부족하여 요청이 거부되었음을 의미하는 상태값이다.
+        // 즉, 클라이언트가 인증되지 않았기 때문에 요청을 정상적으로 처리할 수 없다고 알려주는 것이다.
+        .status(401)
+        .json({ message: `Unauthorized : login is required.` })
+    );
+  }
+  const user_index = req.session.index;
+  return res.status(200).json(user_index);
+}
+
+export async function updateUserImage(req, res) {
+  console.log("updateUserImage 컨트롤러 실행");
+  console.log(`req.index_check: ${req.index_check}`);
+  console.log(`req.user_id: ${req.user_id_check}`);
+  if (req.index_check == undefined) {
+    return res.status(403).json({ message: "Forbidden : Login is required" });
+  }
+  if (req.fileValidationError) {
+    return res
+      .status(400)
+      .json({ message: `Bad Request : you can upload only image file` });
+  }
+  const userImage = `${req.file.destination}${req.file.filename}`;
+  console.log(`userImage = ${userImage}`);
+  const user = await userRepository.updateUserImage(req.index_check, userImage);
+  return res.status(201).json({ message: `Created : profile image changed` });
 }

@@ -112,6 +112,23 @@ const userInputOptionForUpdate = [
   validate,
 ];
 
+const userPwInputOptionForUpdate = [
+  body("new_user_pw")
+    .trim()
+    .isLength({ min: 5, max: 15 })
+    .withMessage(
+      "비밀번호는 8~15자의 영문 소문자, 숫자, 특수문자의 조합으로 구성되어야 합니다."
+    )
+    .isStrongPassword(passwordOption)
+    .withMessage(
+      "비밀번호는 8~15자의 영문 소문자, 숫자, 특수문자의 조합으로 구성되어야 합니다."
+    )
+    .isLowercase()
+    .withMessage(
+      "비밀번호는 8~15자의 영문 소문자, 숫자, 특수문자의 조합으로 구성되어야 합니다."
+    ),
+];
+
 // 로그인
 router.post("/signin", getIpAndMoment, usersController.signin);
 // 로그 아웃
@@ -142,12 +159,31 @@ router.put(
   usersController.updateUser
 );
 
+router.put(
+  "/change-pw",
+  getIpAndMoment,
+  isAuth,
+  // userPwInputOptionForUpdate,
+  usersController.updateUserPw
+);
+
+router.put(
+  "/change-profile-image",
+  getIpAndMoment,
+  isAuth,
+  upload.single("image"),
+  imageExtensionErrorHandler,
+  usersController.updateUserImage
+);
+
 // 유저 정보 삭제
 router.delete("/:id", getIpAndMoment, isAuth, usersController.deleteUser);
-
 router.post("/id-check", usersController.checkUserId);
 router.post("/nickname-check", usersController.checkNickname);
 router.post("/phonenumber-check", usersController.checkPhoneNumber);
 router.post("/email-check", usersController.checkEmail);
+router.post("/pw-check", usersController.checkPassword);
+
+router.get("/userInfo", usersController.getUserInfo);
 
 export default router;

@@ -475,3 +475,39 @@ export function deleteAptComment(id) {
     });
   });
 }
+
+// 게시판 댓글 삭제 (댓글 아파트)
+export function deleteAptCommentByUserId(id) {
+  const sql = `DELETE FROM comment_apt WHERE user_id = ?`;
+  getSql(sql);
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, id, function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
+    });
+  });
+}
+
+// 게시판 댓글 삭제 (댓글 게시글)
+export function deletePostCommentByUserId(id) {
+  const sql = `DELETE FROM comment_post WHERE user_id = ?`;
+  getSql(sql);
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(sql, id, function (error, result) {
+        if (error) {
+          return reject("database", `${error.message}`);
+        }
+        connection.release();
+        resolve(result);
+      });
+    });
+  });
+}
